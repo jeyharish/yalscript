@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+import subprocess
+import time
+import os
+
+# Function to display script menu
+def display_menu(options):
+    print("Welcome to the Nmap Script Runner!")
+    print("Script Options:")
+    for i, option in enumerate(options, start=1):
+        print(f"{i}. {option}")
+    print("0. Go Back")  # Add an "Exit" option
+
+# Function to read user input and select choices
+def select_choices(options):
+    choices = []
+    display_menu(options)
+    #print("Don't Use the "all" option if not required [It might take hours]")
+    choice_input = input("Enter choice(s) separated by commas (e.g., 1,2,3): ")
+    choice_list = choice_input.split(',')
+    for choice in choice_list:
+        try:
+            index = int(choice.strip()) - 1
+            if index == -1:  # Check if user selected "Exit" option
+                print("Exiting...")
+                time.sleep(2)
+                
+                subprocess.run("./yalscript")
+            elif 0 <= index < len(options):
+                choices.append(options[index])
+            else:
+                print(f"Invalid choice: {choice}")
+        except ValueError:
+            print(f"Invalid choice: {choice}")
+    return ','.join(choices)
+
+# Function to perform Nmap script scanning
+def nmap_script_scan(target, scripts):
+    # Set the path to the directory
+    LPATH = "/root/yalscript"
+    
+    # Start with file number 1
+    counter = 1
+    
+    # Construct the filename with the counter
+    output_file = (f"/root/yalscript/scans/script_scans/{target}-NSE-scan-results_{counter}.txt")
+    
+    # Check if the filename already exists, if so, increment the counter
+    while os.path.exists(output_file):
+        counter += 1
+        output_file = f"/root/yalscript/scans/script_scans/{target}-NSE-scan-results_{counter}.txt"
+        
+    # Set up the nmap command
+    command = ["nmap", "--script", scripts, "-oN", output_file, target]
+    
+    # Run the nmap command
+    subprocess.run(command)
+    
+    # Print a message indicating where the results were saved
+    print(f"\033[34mNmap scan results saved to {output_file}\033[0m")
+    
+    # Prompt the user to continue
+    input("Press Any Key to Continue")
+    
+    # Run the next script scanner
+    subprocess.run("./ScrScanner")
+    
+def main():
+    options = ["all", "default", "discovery", "vuln", "exploit", "auth", "brute", "intrusive", "safe", "external",
+               "http-enum", "ftp-anon", "smtp-enum-users", "smb-vuln-ms08-067", "dns-zone-transfer",
+               "ssl-cert", "vnc-brute", "snmp-brute", "mysql-enum", "rpcinfo", "broadcast-ping"]
+    
+    selected_choices = select_choices(options)
+    print("")
+    print(f"Scripts Selected: {selected_choices}")
+    target = input("Target IP: ")
+    print("")
+    nmap_script_scan(target, selected_choices)
+
+if __name__ == "__main__":
+    try:
+        # Your code that may raise KeyboardInterrupt
+        while True:
+            main()
+            pass
+    except KeyboardInterrupt:
+        # Code to execute when KeyboardInterrupt is raised
+        print("Exiting!...: Program terminated by user")

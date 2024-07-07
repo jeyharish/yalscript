@@ -12,6 +12,7 @@
         type 'yalscript' in terminal  [ if this is not working use 'cp /root/yalscript/yalscript /usr/bin/' ] 
         OR
         type 'cd /root/yalscript && ./yalscript'
+Type "interface" to change interface inside the tool
 
 This Project is still under development 
 So you can expect Major changes!

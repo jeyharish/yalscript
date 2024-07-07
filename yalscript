@@ -99,14 +99,15 @@ function banner
 {
 clear
 echo -e " "
-echo -e $BG  "\t\t"  " ██╗   ██╗    █████╗   $BR ██╗       ███████╗   "
+echo -e $BG  "\t\t"  " ██╗   ██╗    █████╗   $BR ██╗       ███████╗   v1.0"
 echo -e $BG  "\t\t"  " ╚██╗ ██╔╝   ██╔══██╗  $BR ██║       ██╔════╝   "
 echo -e $BG  "\t\t"  "  ╚████╔╝    ███████║  $BR ██║       ███████╗   "
-echo -e $BG  "\t\t"  "   ╚██╔╝     ██╔══██║  $BR ██║       ╚════██║   "
+echo -e $BG  "\t\t"  "   ╚██╔╝     ██╔══██║  $BR ██║       ╚════██║  $CE by$BR JEY HARISH"
 echo -e $BG  "\t\t"  "    ██║      ██║  ██║  $BR ███████╗  ███████║   "            
 echo -e $BG  "\t\t"  "    ╚═╝      ╚═╝  ╚═╝  $BR ╚══════╝  ╚══════╝   "
 echo -e $BG  "\t\t"  "|----------Yet Another"$BR" Lazy Script----------|"
-echo -e "$CE"
+echo -e "\t\t\t"     "   [Inspired by lazy script]$CE"
+echo
 echo  "if) ifconfig          	l) Local IPs & gateways         |     CTF Tools     "
 echo  " 1) Enable wlan0      	d1) Disable wlan0               | recon) Basic Recon"
 echo  " 2) Enable wlan0mon   	d2) Disable wlan0mon            | steg)  Stegnography"
@@ -3552,6 +3553,9 @@ function MainMenu
     	metasploit_menu
     elif [[ $choice == "wifi" ]]; then
 		airgeddonn
+		MainMenu
+	elif [[ $choice == "interface" ]]; then
+		set_interface_number
 		MainMenu
     elif [[ "$choice" == "hash" || "$choice" = "h" ]]; then
     	hash_identifier

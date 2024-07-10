@@ -7,6 +7,7 @@ Yet Another Lazy Script (YALS) is a  automation tool inspired by the original "T
       git clone https://github.com/jeyharish/yalscript.git
       cd yalscript
       chmod +x install.sh
+      ./install.sh
 
 	 
 		To Run:
